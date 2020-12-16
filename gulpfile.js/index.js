@@ -1,7 +1,7 @@
 const fs = require('fs');
 const gulp = require('gulp');
 const rollup = require('rollup');
-const buble = require('@rollup/plugin-buble');
+const babel = require('@rollup/plugin-babel').default;
 const { minify } = require('terser');
 const header = require('./header');
 
@@ -14,7 +14,10 @@ gulp.task('bundleJs', async () => {
     let bundle = await rollup.rollup({
         input: './src/main.js',
         plugins: [
-            buble()
+            babel({
+                babelHelpers: 'bundled',
+                presets: ['@babel/preset-env']
+            })
         ]
     });
 
@@ -23,7 +26,8 @@ gulp.task('bundleJs', async () => {
         file: `./dist/${libName}.js`,
         format: 'umd',
         name: libName,
-        banner: header
+        banner: header,
+        indent: '  '
     });
 
     // 压缩、添加头部并生成文件

@@ -132,9 +132,9 @@
 
                     <polyline points="260,30 290,100 350,150 330,100 360,20" stroke="red" stroke-width="2" fill="orange"></polyline>
 
-                    <polygon points="300, 210 240, 398 390, 278 210, 278 360, 398" style="fill: orange; stroke: red; stroke-width: 2; fill-rule: nonzero;" />
+                    <polygon points="300, 210 240, 398 390, 278 210, 278 360, 398" style="fill: orange; stroke: red; stroke-width: 2; fill-rule: nonzero;"></polygon>
 
-                    <rect x="10" y="300" width="200" height="80" fill="orange" stroke="red" stroke-width="2" />
+                    <rect x="10" y="300" width="200" height="80" fill="orange" stroke="red" stroke-width="2"></rect>
                 </svg>
                 <div id="ellipse" class="pencil"></div>
                 <div id="path" class="pencil"></div>
@@ -202,31 +202,31 @@
             </div>
         </div>
         <script type="text/javascript">
-            (function() {
-                if ( typeof SVGElement === 'undefined' ) {
-                    return;
-                }
-                animate({
-                    properties: {
-                        points: [
-                            {
-                                value: [
-                                    '70 24 119.574 60.369 100.145 117.631 50.855 101.631 3.426 54.369',
-                                    '70 41 118.574 59.369 111.145 132.631 60.855 84.631 20.426 60.369'
-                                ]
-                            },
-                            { value: '70 6 119.574 60.369 100.145 117.631 39.855 117.631 55.426 68.369' },
-                            { value: '70 57 136.574 54.369 89.145 100.631 28.855 132.631 38.426 64.369' },
-                            { value: '70 24 119.574 60.369 100.145 117.631 50.855 101.631 3.426 54.369' }
-                        ]
-                    },
-                    targets: '#variant .polymorph',
-                    duration: 1532,
-                    round: 10,
-                    loop: true,
-                    direction: 'alternate'
-                });
-            })();
+            // (function() {
+            //     if ( typeof SVGElement === 'undefined' ) {
+            //         return;
+            //     }
+            //     animate({
+            //         properties: {
+            //             points: [
+            //                 {
+            //                     value: [
+            //                         '70 24 119.574 60.369 100.145 117.631 50.855 101.631 3.426 54.369',
+            //                         '70 41 118.574 59.369 111.145 132.631 60.855 84.631 20.426 60.369'
+            //                     ]
+            //                 },
+            //                 { value: '70 6 119.574 60.369 100.145 117.631 39.855 117.631 55.426 68.369' },
+            //                 { value: '70 57 136.574 54.369 89.145 100.631 28.855 132.631 38.426 64.369' },
+            //                 { value: '70 24 119.574 60.369 100.145 117.631 50.855 101.631 3.426 54.369' }
+            //             ]
+            //         },
+            //         targets: '#variant .polymorph',
+            //         duration: 1532,
+            //         round: 10,
+            //         loop: true,
+            //         direction: 'alternate'
+            //     });
+            // })();
         </script>
 
         <div class="box">
@@ -243,6 +243,29 @@
                 round: 10,
                 loop: true,
                 direction: 'alternate'
+            });
+
+        </script>
+
+        <div class="box">
+            <div class="box-title">相对值</div>
+            <div id="relativeBox">
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            animate({
+                targets: '#relativeBox .square',
+                properties: {
+                    translateX: function( target, id, total ) {
+                        return ['+=100px', '-=50px', '*=200%', '/=20px'][ id ];
+                    }
+                },
+                loop: true,
+                duration: 1000
             });
 
         </script>

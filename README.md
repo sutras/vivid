@@ -1,4 +1,4 @@
-# anima
+# animate
 
 动画引擎，实现一定时间内对象两属性值间的变化效果。
 
@@ -7,7 +7,7 @@
 ``` html
 <div id="box"></div>
 
-<script type="text/javascript" src="anima.js"></script>
+<script type="text/javascript" src="animate.js"></script>
 <script type="text/javascript">
     var ani = anima({
         properties: {
@@ -202,7 +202,7 @@ anima({
 ### anima#finish()
 立即完成当前动画。
 
-### anima#getCurrDuration()
+### anima#getPosition()
 返回动画当前已播放时长的毫秒数。
 
 ### anima#getDuration()
@@ -332,28 +332,6 @@ engine是内部使用的引擎，也可以使用anima.engine来对外访问，�
 4. hsl
 5. hsla
 6. 颜色名
-
-
-
-# IE8以下（含）浏览器的兼容性
-
-1. 选择器
-    配置targets选项时，如果有传入字符串，会使用document.querySelectorAll接口来获取DOM元素，
-    因为IE7以下（含）浏览器不支持，anima库也不对其进行兼容了，
-    因此如果要兼容E7以下（含）浏览器，就不能传入字符串选择器来指定元素。
-
-2. opacity属性
-    IE8以下浏览器不支持opacity属性，anima库在做向下兼容时会使用IE的滤镜来实现透明度，
-    但并不会对同一个元素的多个滤镜效果做分割处理，如果元素有使用透明度以外的滤镜效果，将会被清除，只留下透明度。
-
-3. 带透明度的颜色
-   IE8以下浏览器不支持带透明度的颜色，唯有背景色可以使用渐变的滤镜效果来模拟实现，
-   因其局限性，anima库不对其进行兼容。
-   IE8以下浏览器的颜色值统一使用6位不带透明度的16进制hex表示。
-
-4. 画线和路径动画
-    画线和路径动画使用的是SVG技术，IE8以下浏览器不支持SVG，因此也就不支持画线和路径动画。
-
 
 
 # 画线动画兼容性
