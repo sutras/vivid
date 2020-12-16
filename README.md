@@ -9,7 +9,7 @@
 
 <script type="text/javascript" src="animate.js"></script>
 <script type="text/javascript">
-    var ani = anima({
+    var ani = animate({
         properties: {
             opacity: 0
         },
@@ -24,7 +24,7 @@
 ## 选项参数
 
 ``` js
-anima({
+animate({
     // {Object} 目标对象或目标对象的样式对象的属性；可选：css数值类型或颜色值的属性、transform类属性和值为数值类型的任意对象的属性。
     properties: null,
 
@@ -110,7 +110,7 @@ anima({
 例子：
 
 ``` js
-anima({
+animate({
     properties: {
         translateX: 100
         translateY: 100
@@ -144,7 +144,7 @@ anima({
 默认每一个值的duration为总duration除于关键帧数，当然也可以单独设置duration。
 
 ``` js
-anima({
+animate({
     properties: {
         translateX: [
             { value: 250, duration: 1000, delay: 500 },
@@ -181,7 +181,7 @@ anima({
 其实也可以使用keyframes选项完全代替properties。
 
 ``` js
-anima({
+animate({
     keyframes: [
         {
             translateY: -100,
@@ -199,46 +199,46 @@ anima({
 
 ## 实例方法
 
-### anima#finish()
+### animate#finish()
 立即完成当前动画。
 
-### anima#getPosition()
+### animate#getPosition()
 返回动画当前已播放时长的毫秒数。
 
-### anima#getDuration()
+### animate#getDuration()
 返回动画总时长。
 
-### anima#getProgress()
+### animate#getProgress()
 返回动画当前播放的进度。
 
-### anima#pause()
+### animate#pause()
 暂停当前动画。
 
-### anima#play()
+### animate#play()
 继续播放动画。
 
-### anima#restart()
+### animate#restart()
 重新播放动画。
 
-### anima#seek( duration )
+### animate#seek( duration )
 设置动画播放到指定时间。
 
-### anima#tick()
-在设置delegate选项参数为true基础上，在别的引擎中调用anima#tick()方法来驱使动画运行。
+### animate#tick()
+在设置delegate选项参数为true基础上，在别的引擎中调用animate#tick()方法来驱使动画运行。
 
 
 ## 辅助函数
 
-### anima.random( min: number, max: number ): number
+### animate.random( min: number, max: number ): number
 返回一个随机数。
 
-### anima.setDashoffset( elem: SVGGeometryElement ): number
+### animate.setDashoffset( elem: SVGGeometryElement ): number
 用于SVG的画线动画。设置SVGGeometryElement元素stroke-dasharray为SVGGeometryElement#getTotalLength并返回。例如：
 
 ``` js
-anima({
+animate({
     properties: {
-        strokeDashoffset: [anima.setDashoffset, 0]
+        strokeDashoffset: [animate.setDashoffset, 0]
     },
     targets: 'svg path',
     duration: 3000,
@@ -248,13 +248,13 @@ anima({
 });
 ```
 
-### anima.geometry( target: SVGGeometryElement | string, percent?: number = 100 ): function
+### animate.geometry( target: SVGGeometryElement | string, percent?: number = 100 ): function
 用于路径动画。geometry函数返回一个函数，后者可接受一个字符串参数{x|y|angle}进行调用并返回一个对象，
 此对象包含了一个标识属性类型的属性便于程序内部进行指定的处理。例如：
 
 ``` js
-var geometry = anima.geometry('svg path');
-anima({
+var geometry = animate.geometry('svg path');
+animate({
     targets: '#el',
     properties: {
         translateX: geometry('x'),
@@ -268,11 +268,11 @@ anima({
 });
 ```
 
-### anima.addEasing( object: Object )
-### anima.addEasing( name: string, handle: Function )
+### animate.addEasing( object: Object )
+### animate.addEasing( name: string, handle: Function )
 如果内置的缓动公式不合适，也可以导入外部的缓动公式。
 
-### anima.stagger( val: Array | number, options: Object ): Function
+### animate.stagger( val: Array | number, options: Object ): Function
 交错动画。
 ``` js
 val: Number  // 设置交错值
@@ -302,14 +302,14 @@ options = {
 
 ## engine
 engine对象拥有两个对外的方法：add、remove，两方法都接受一个函数作为参数；
-engine是内部使用的引擎，也可以使用anima.engine来对外访问，一般用于展示FPS。例如：
+engine是内部使用的引擎，也可以使用animate.engine来对外访问，一般用于展示FPS。例如：
 
 ``` js
 (function() {
     var fpsBox = document.getElementById('fpsBox');
     var prevFrameTime = Date.now();
     var fps = 0;
-    anima.engine.add(function() {
+    animate.engine.add(function() {
         var currTime = Date.now();
         fps = ~~( 1000 / ( currTime - prevFrameTime ) );
         prevFrameTime = currTime;
