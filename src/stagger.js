@@ -5,7 +5,7 @@
 |
 */
 import { assignObjectProp } from './util';
-import easingStrategies from './easing';
+import easing from './easing';
 
 const staggerOptions = {
     start: 0,
@@ -19,7 +19,7 @@ export default function stagger( val, options ) {
     options = assignObjectProp( {}, staggerOptions, options );
 
     let direction = options.direction,
-        tween = options.easing ? easingStrategies[ options.easing ] : null,
+        tween = options.easing ? easing[ options.easing ] : null,
         grid = options.grid,
         axis = options.axis,
         fromIndex = options.from || 0,
@@ -65,15 +65,11 @@ export default function stagger( val, options ) {
             }
 
             if ( tween ) {
-                values = values.map( function( val ) {
-                    return tween( val / maxValue ) * maxValue;
-                } );
+                values = values.map( val => tween( val / maxValue ) * maxValue );
             }
 
             if ( direction === 'reverse' ) {
-                values = values.map( function( val ) {
-                    return axis ? -val : Math.abs( maxValue - val );
-                } );
+                values = values.map( val => axis ? -val : Math.abs( maxValue - val ) );
             }
         }
 

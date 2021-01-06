@@ -1,5 +1,5 @@
 /**
- * @version v0.4.0
+ * @version v0.5.0
  * @link https://github.com/sutras/animate#readme
  * @license MIT
  */
@@ -10,13 +10,29 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.animate = factory());
 }(this, (function () { 'use strict';
 
+  function _typeof(obj) {
+    "@babel/helpers - typeof";
+
+    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+      _typeof = function (obj) {
+        return typeof obj;
+      };
+    } else {
+      _typeof = function (obj) {
+        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+      };
+    }
+
+    return _typeof(obj);
+  }
+
   /*
   |-------------------------------------------------------------------------------
   | 缓动公式
   |-------------------------------------------------------------------------------
   |
   */
-  var easingStrategies$1 = {
+  var easing = {
     def: 'easeInOutQuad',
     linear: function linear(k) {
       //无缓动效果
@@ -124,7 +140,7 @@
       return 0.5 * ((k -= 2) * k * ((s + 1) * k + s) + 2);
     },
     easeInBounce: function easeInBounce(k) {
-      return 1 - easingStrategies.easeOutBounce(1 - k);
+      return 1 - easing.easeOutBounce(1 - k);
     },
     easeOutBounce: function easeOutBounce(k) {
       if (k < 1 / 2.75) {
@@ -138,8 +154,8 @@
       }
     },
     easeInOutBounce: function easeInOutBounce(k) {
-      if (k < 0.5) return easingStrategies.easeInBounce(k * 2) * 0.5;
-      return easingStrategies.easeOutBounce(k * 2 - 1) * 0.5 + 0.5;
+      if (k < 0.5) return easing.easeInBounce(k * 2) * 0.5;
+      return easing.easeOutBounce(k * 2 - 1) * 0.5 + 0.5;
     }
   };
 
@@ -218,44 +234,6 @@
     };
   }
 
-  function _typeof(obj) {
-    "@babel/helpers - typeof";
-
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-      _typeof = function (obj) {
-        return typeof obj;
-      };
-    } else {
-      _typeof = function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      };
-    }
-
-    return _typeof(obj);
-  }
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  function _defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];
-      descriptor.enumerable = descriptor.enumerable || false;
-      descriptor.configurable = true;
-      if ("value" in descriptor) descriptor.writable = true;
-      Object.defineProperty(target, descriptor.key, descriptor);
-    }
-  }
-
-  function _createClass(Constructor, protoProps, staticProps) {
-    if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-    if (staticProps) _defineProperties(Constructor, staticProps);
-    return Constructor;
-  }
-
   /*
   |-------------------------------------------------------------------------------
   | Set
@@ -263,61 +241,49 @@
   |
   */
   var Set = window.Set && window.Set.prototype.forEach ? window.Set : function () {
-    return /*#__PURE__*/function () {
-      function _class(arr) {
-        _classCallCheck(this, _class);
+    function Set(arr) {
+      this.values = [];
+      this.size = 0;
 
-        this.values = [];
-        this.size = 0;
-
-        if (Array.isArray(arr)) {
-          this.values = arr.slice();
-          this.size = arr.length;
-        } else if (arr instanceof Set) {
-          this.values = arr.values.slice();
-          this.size = arr.size;
-        }
+      if (Array.isArray(arr)) {
+        this.values = arr.slice();
+        this.size = arr.length;
+      } else if (arr instanceof Set) {
+        this.values = arr.values.slice();
+        this.size = arr.size;
       }
+    }
 
-      _createClass(_class, [{
-        key: "add",
-        value: function add(value) {
-          if (this.values.indexOf(value) === -1) {
-            this.values.push(value);
-            this.size++;
-          }
-
-          return this;
+    Set.prototype = {
+      add: function add(value) {
+        if (this.values.indexOf(value) === -1) {
+          this.values.push(value);
+          this.size++;
         }
-      }, {
-        key: "has",
-        value: function has(value) {
-          return this.values.indexOf(value) !== -1;
-        }
-      }, {
-        key: "forEach",
-        value: function forEach(fn) {
-          for (var i = 0; i < this.size; i++) {
-            fn(this.values[i], this.values[i], this);
-          }
-        }
-      }, {
-        key: 'delete',
-        value: function _delete(value) {
-          var i;
 
-          if ((i = this.values.indexOf(value)) !== -1) {
-            this.values.splice(i, 1);
-            this.size--;
-            return true;
-          }
-
-          return false;
+        return this;
+      },
+      has: function has(value) {
+        return this.values.indexOf(value) !== -1;
+      },
+      forEach: function forEach(fn) {
+        for (var i = 0; i < this.size; i++) {
+          fn(this.values[i], this.values[i], this);
         }
-      }]);
+      },
+      'delete': function _delete(value) {
+        var i;
 
-      return _class;
-    }();
+        if ((i = this.values.indexOf(value)) !== -1) {
+          this.values.splice(i, 1);
+          this.size--;
+          return true;
+        }
+
+        return false;
+      }
+    };
+    return Set;
   }();
 
   /*
@@ -352,7 +318,7 @@
       stop();
     } else {
       new Set(timelines).forEach(function (tick) {
-        tick();
+        return tick();
       });
       id = request(step);
     }
@@ -383,6 +349,10 @@
   |-------------------------------------------------------------------------------
   |
   */
+  var rNum = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/;
+  var rUnit = /%|px|em|ex|ch|rem|vw|vh|vmin|vmax|pc|pt|in|cm|mm|deg|rad|turn/;
+  var rCssNumVal = new RegExp('^([+\\-*/%]=|)(' + rNum.source + ')(' + rUnit.source + '|)$', 'i');
+  var rNums = new RegExp(rNum.source, 'g');
   var toString = Object.prototype.toString;
   function assignObjectProp(target) {
     var i = 1,
@@ -457,13 +427,10 @@
       break;
     }
 
-    return isUndefined(i);
+    return i === void 0;
   }
   function isArrayLike(target) {
     return target != null && _typeof(target) === 'object' && isFinite(target.length) && target.length >= 0 && target.length === Math.floor(target.length) && target.length < 4294967296;
-  }
-  function isUndefined(target) {
-    return target === void 0;
   }
 
   function flattenArray(target, depth) {
@@ -547,7 +514,7 @@
   function stagger(val, options) {
     options = assignObjectProp({}, staggerOptions, options);
     var direction = options.direction,
-        tween = options.easing ? easingStrategies$1[options.easing] : null,
+        tween = options.easing ? easing[options.easing] : null,
         grid = options.grid,
         axis = options.axis,
         fromIndex = options.from || 0,
@@ -609,63 +576,49 @@
   |
   */
   var Map = window.Map && window.Map.prototype.forEach ? window.Map : function () {
-    return /*#__PURE__*/function () {
-      function _class() {
-        _classCallCheck(this, _class);
+    function Map() {
+      this.keys = [];
+      this.values = [];
+      this.size = 0;
+    }
 
-        this.keys = [];
-        this.values = [];
-        this.size = 0;
+    Map.prototype = {
+      set: function set(key, value) {
+        var i;
+
+        if ((i = this.keys.indexOf(key)) === -1) {
+          this.keys.push(key);
+          this.size = this.keys.length;
+          return this.values.push(value);
+        }
+
+        this.values[i] = value;
+      },
+      get: function get(key) {
+        return this.values[this.keys.indexOf(key)];
+      },
+      has: function has(key) {
+        return this.keys.indexOf(key) !== -1;
+      },
+      forEach: function forEach(fn) {
+        for (var i = 0; i < this.size; i++) {
+          fn(this.values[i], this.keys[i], this);
+        }
+      },
+      'delete': function _delete(key) {
+        var i;
+
+        if ((i = this.keys.indexOf(key)) !== -1) {
+          this.keys.splice(i, 1);
+          this.values.splice(i, 1);
+          this.size = this.keys.length;
+          return true;
+        }
+
+        return false;
       }
-
-      _createClass(_class, [{
-        key: "set",
-        value: function set(key, value) {
-          var i;
-
-          if ((i = this.keys.indexOf(key)) === -1) {
-            this.keys.push(key);
-            this.size = this.keys.length;
-            return this.values.push(value);
-          }
-
-          this.values[i] = value;
-        }
-      }, {
-        key: "get",
-        value: function get(key) {
-          return this.values[this.keys.indexOf(key)];
-        }
-      }, {
-        key: "has",
-        value: function has(key) {
-          return this.keys.indexOf(key) !== -1;
-        }
-      }, {
-        key: "forEach",
-        value: function forEach(fn) {
-          for (var i = 0; i < this.size; i++) {
-            fn(this.values[i], this.keys[i], this);
-          }
-        }
-      }, {
-        key: 'delete',
-        value: function _delete(key) {
-          var i;
-
-          if ((i = this.keys.indexOf(key)) !== -1) {
-            this.keys.splice(i, 1);
-            this.values.splice(i, 1);
-            this.size = this.keys.length;
-            return true;
-          }
-
-          return false;
-        }
-      }]);
-
-      return _class;
-    }();
+    };
+    return Map;
   }();
 
   /*
@@ -675,16 +628,17 @@
   |
   */
 
-  var rNumSrc = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source;
-  var unit = '%|px|em|ex|ch|rem|vw|vh|vmin|vmax|pc|pt|in|cm|mm|deg|rad|turn';
-  var rCssNumVal = new RegExp('^([+\\-*%]=|)(' + rNumSrc + ')(' + unit + '|)$', 'i');
   var DIRECTION_ALTERNATE_REVERSE = 'alternate-reverse';
   var DIRECTION_REVERSE = 'reverse';
   var DIRECTION_ALTERNATE = 'alternate'; // 插件（洋葱模型）
 
   var plugins = [];
-  var ids = {};
+  var ids = {}; // 类型
+
+  var SPECIAL_VALUE = {};
   var TERMINATE = {};
+  var WITH_FROM = {};
+  var KEYFRAMES = {};
 
   function parseTargets(target) {
     var result = [],
@@ -702,10 +656,10 @@
       item = target[i];
 
       if (item) {
-        if (item && item.nodeType === 1) {
-          result.push(item);
-        } else if (typeof item === 'string' && document.querySelectorAll && (item = document.querySelectorAll(item)) || isArrayLike(item)) {
+        if (typeof item === 'string' && (item = document.querySelectorAll(item)) || isArrayLike(item)) {
           result.push.apply(result, item);
+        } else if (_typeof(item) === 'object' || typeof item === 'function') {
+          result.push(item);
         }
       }
     }
@@ -714,11 +668,7 @@
   }
 
   function getEasing(ease) {
-    return isFunction(ease) ? ease : easingStrategies$1[ease] || easingStrategies$1[easingStrategies$1.def];
-  }
-
-  function decomposeValue(value) {
-    return rCssNumVal.exec(value);
+    return isFunction(ease) ? ease : easing[ease] || easing[easing.def];
   }
 
   function isReverse(direction) {
@@ -738,11 +688,11 @@
         delay = tween.delay,
         begin = tween.begin;
 
-    function getOne(pair) {
+    function getOneItem(item) {
       var value,
-          from = pair.from,
-          to = pair.to,
-          round = pair.round;
+          from = item.from,
+          to = item.to,
+          round = item.round;
       value = progress <= begin + delay ? from : progress >= begin + delay + duration ? to : from + tween.easing((progress - begin - delay) / duration) * (to - from);
 
       if (round) {
@@ -752,8 +702,8 @@
       return value;
     }
 
-    return tween.between.map(function (pair) {
-      return getOne(pair);
+    return tween.between.map(function (item) {
+      return getOneItem(item);
     });
   }
   /*
@@ -775,22 +725,39 @@
         total: targets.length
       };
     });
-  }
+  } // # 基础类型
+  // - 数值
+  // - 字符串
+  // - 数组
+  // - 对象
+  // 
+  // # 特殊类型
+  // - 带起始值 withFrom
+  // - 关键帧 keyframes
+  // - 其他类型
+  // 统一转换为 [{ value }]
 
-  function structureValue(value) {
-    if (isPlainObject(value) && !value.type) {
-      value = [value];
-    } else if (!Array.isArray(value) || !isPlainObject(value[0])) {
-      value = [{
-        value: value
-      }];
+
+  function structureTween(value, animatable, keyframe) {
+    value = getFuncValue(value, animatable);
+
+    if (value.type === KEYFRAMES) {
+      return value.keyframes.map(function (value) {
+        return structureTween(value, animatable, true);
+      });
     }
 
-    return value;
+    if (!isPlainObject(value) || value.sign === SPECIAL_VALUE) {
+      value = {
+        value: value
+      };
+    }
+
+    return keyframe ? value : [value];
   }
 
   function normalizeTweens(animatable, tweenConfigs, property, options, beginTime, animationProperties, averageDuration) {
-    var duration = isUndefined(averageDuration) ? options.duration : averageDuration,
+    var duration = averageDuration === void 0 ? options.duration : averageDuration,
         l = tweenConfigs.length,
         tweens,
         endTime = beginTime || 0,
@@ -798,75 +765,77 @@
     averageDuration = duration / l;
 
     function normalizeTween(tweenConfig, index, prevTween) {
-      var duration = getFuncValue(isUndefined(tweenConfig.duration) ? averageDuration : tweenConfig.duration, animatable),
-          delay = getFuncValue(isUndefined(tweenConfig.delay) ? index === 0 ? options.delay : 0 : tweenConfig.delay, animatable),
-          endDelay = getFuncValue(isUndefined(tweenConfig.endDelay) ? index === l - 1 ? options.endDelay : 0 : tweenConfig.endDelay, animatable),
+      var duration = getFuncValue(tweenConfig.duration === void 0 ? averageDuration : tweenConfig.duration, animatable),
+          delay = getFuncValue(tweenConfig.delay === void 0 ? index === 0 ? options.delay : 0 : tweenConfig.delay, animatable),
+          endDelay = getFuncValue(tweenConfig.endDelay === void 0 ? index === l - 1 ? options.endDelay : 0 : tweenConfig.endDelay, animatable),
           total = delay + duration + endDelay,
           begin = endTime,
           end = begin + total,
+          value,
           to,
           from,
           tween,
-          round,
+          round = tweenConfig.round || options.round,
+          easing = getEasing(tweenConfig.easing || options.easing),
           values,
           i,
-          parts;
+          l,
+          parts,
+          withFrom,
+          retValue;
       endTime += total;
-      to = tweenConfig.value;
+      value = tweenConfig.value;
+      withFrom = value.type === WITH_FROM; // 带有起始值
 
-      if (!isPlainObject(to)) {
-        if (Array.isArray(to)) {
-          from = to[0];
-          to = to[1];
-        }
+      if (withFrom) {
+        from = value.from;
+        to = value.to;
+      } else {
+        to = value;
       }
 
       if (!prevTween) {
         prevTween = animationProperties && !isEmptyObject(animationProperties) && (values = animationProperties[property]) ? values[values.length - 1] : null;
       }
 
+      from = withFrom ? getFuncValue(from, animatable) : prevTween ? prevTween.to : animatable.target[property];
       tween = {
         animatable: animatable,
         property: property,
         duration: duration,
         delay: delay,
         endDelay: endDelay,
-        value: tweenConfig.value,
         begin: begin,
         end: end,
-        easing: getEasing(tweenConfig.easing || options.easing),
+        easing: easing,
         pluginData: {}
       };
-      from = getFuncValue(isUndefined(from) ? prevTween ? prevTween.between[0].to : animatable.target[property] : from, animatable);
-      to = getFuncValue(to, animatable);
-      round = tweenConfig.round || options.round;
-      parts = decomposeValue(to);
 
-      if (parts) {
+      if (parts = rCssNumVal.exec(to)) {
         assignObject(tween, {
-          singleValue: true,
           operator: parts[1],
           unit: parts[3]
         });
         to = parseFloat(parts[2]) || 0;
       }
 
-      tween.between = [{
-        from: from,
-        to: to,
-        round: round
-      }];
+      tween.from = from;
+      tween.to = to;
+      tween.round = round;
 
-      for (i = plugins.length - 1; i >= 0; i--) {
-        plugins[i].init(tween);
+      for (i = 0, l = plugins.length; i < l; i++) {
+        retValue = plugins[i].init(tween, TERMINATE);
+
+        if (retValue === TERMINATE) {
+          break;
+        }
       }
 
       return tween;
     }
 
     tweens = sortBy(tweenConfigs.map(function (tweenConfig, index) {
-      prevTween = normalizeTween(tweenConfig, index, prevTween);
-      return prevTween;
+      return prevTween = normalizeTween(tweenConfig, index, prevTween);
     }), function (item) {
       return item.begin;
     });
@@ -878,10 +847,15 @@
 
   function getOneKeyframeSetting(animatable, keyframe, options, beginTime, animationProperties, averageDuration) {
     var props = {},
-        p;
+        p,
+        value;
 
     for (p in keyframe) {
-      props[p] = normalizeTweens(animatable, structureValue(keyframe[p]), p, options, beginTime, animationProperties, averageDuration);
+      if ((value = keyframe[p]) == null) {
+        continue;
+      }
+
+      props[p] = normalizeTweens(animatable, structureTween(value, animatable), p, options, beginTime, animationProperties, averageDuration);
     }
 
     return props;
@@ -968,7 +942,7 @@
     duration: 400,
     delay: 0,
     endDelay: 0,
-    easing: easingStrategies$1.def,
+    easing: easing.def,
     round: 0
   };
 
@@ -1002,6 +976,10 @@
 
     if (autoplay) {
       start();
+    }
+
+    function isCompleted() {
+      return loopCount === 0 && position === duration && !isPlaying;
     }
 
     function invokeCallback(name) {
@@ -1039,6 +1017,11 @@
 
       if (isPlaying) {
         return;
+      } // complete状态下，调用play，相当于调用restart
+
+
+      if (isCompleted()) {
+        return restart();
       }
 
       isPlaying = true;
@@ -1119,7 +1102,9 @@
     }
 
     function finish() {
-      seek(duration);
+      if (!isCompleted()) {
+        seek(duration);
+      }
     }
 
     return {
@@ -1157,7 +1142,7 @@
 
   function createAnimation(tweens) {
     function update(progress) {
-      var i, l, tween, currTween, value, calcVal;
+      var i, tween, currTween, value, calcVal;
 
       for (i = 0; tween = tweens[i++];) {
         if (tween.begin <= progress && tween.end >= progress) {
@@ -1175,23 +1160,17 @@
       if (currTween) {
         value = getTweenValue(progress, currTween);
 
-        for (i = 0, l = plugins.length; i < l; i++) {
-          calcVal = plugins[i].update(progress, currTween, value, TERMINATE);
+        for (i = plugins.length - 1; i >= 0; i--) {
+          calcVal = plugins[i].update(currTween, value, TERMINATE);
 
           if (calcVal === TERMINATE) {
             return;
           }
 
-          if (!isUndefined(calcVal)) {
+          if (calcVal !== void 0) {
             value = calcVal;
           }
         }
-
-        if (Array.isArray(value)) {
-          value = value[0];
-        }
-
-        currTween.animatable.target[currTween.property] = value + currTween.unit;
       }
     }
 
@@ -1212,8 +1191,6 @@
     return createTimeline(configuration);
   }
 
-  animate.random = random;
-
   animate.addEasing = function (name, handle) {
     if (isPlainObject(name)) {
       for (var i in name) {
@@ -1224,8 +1201,28 @@
     }
   };
 
+  animate.withFrom = function (from, to) {
+    return {
+      from: from,
+      to: to,
+      sign: SPECIAL_VALUE,
+      type: WITH_FROM
+    };
+  }; // 属性关键帧
+
+
+  animate.keyframes = function (keyframes) {
+    return {
+      type: KEYFRAMES,
+      keyframes: keyframes
+    };
+  };
+
   animate.stagger = stagger;
   animate.engine = engine;
+  animate.random = random;
+  animate.Set = Set;
+  animate.Map = Map;
 
   animate.use = function (plugin) {
     var priority, i, l, id;
@@ -1238,7 +1235,7 @@
     priority = plugin.priority || 0;
 
     for (i = 0, l = plugins.length; i < l; i++) {
-      if (priority < plugins[i].priority) {
+      if (priority > plugins[i].priority) {
         break;
       }
     }
@@ -1247,7 +1244,31 @@
     ids[id] = true;
 
     if (isFunction(plugin.install)) {
-      plugin.install(animate);
+      plugin.install(animate, SPECIAL_VALUE);
+    }
+  };
+
+  /*
+  |-------------------------------------------------------------------------------
+  | 更新守卫
+  |-------------------------------------------------------------------------------
+  |
+  */
+  var updateGuardPlugin = {
+    id: 'updateGuard',
+    priority: 100,
+    init: function init() {},
+    update: function update(tween, value, TERMINATE) {
+      if (Array.isArray(value) && value.length === 1) {
+        value = value[0];
+      }
+
+      if (!Array.isArray(value) && tween.unit) {
+        value += tween.unit;
+      }
+
+      tween.animatable.target[tween.property] = value;
+      return TERMINATE;
     }
   };
 
@@ -1260,9 +1281,6 @@
   var cssProps = {};
   var prefixes = ['', 'webkit', 'Moz', 'O', 'ms'];
   var html = document.documentElement;
-  var rNumSrc$1 = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source;
-  var unit$1 = '%|px|em|ex|ch|rem|vw|vh|vmin|vmax|pc|pt|in|cm|mm|deg|rad|turn';
-  var rCssNumVal$1 = new RegExp('^([+\\-*%]=|)(' + rNumSrc$1 + ')(' + unit$1 + '|)$', 'i');
   var validTransforms = arrayToObject(['translateX', 'translateY', 'translateZ', 'rotate', 'rotateX', 'rotateY', 'rotateZ', 'scale', 'scaleX', 'scaleY', 'scaleZ', 'skew', 'skewX', 'skewY', 'perspective']);
   var optionalUnitProperties = arrayToObject(['columnCount', 'fillOpacity', 'fontSizeAdjust', 'fontWeight', 'lineHeight', 'opacity', 'orphans', 'widows', 'zIndex', 'zoom', 'rotate', 'rotateX', 'rotateY', 'rotateZ', 'scale', 'scaleX', 'scaleY', 'scaleZ', 'order', 'flexGrow', 'flexShrink', 'scrollLeft', 'scrollTop', 'strokeDashoffset', 'strokeDasharray']);
   var cssTypeWhitelist = arrayToObject(['opacity']);
@@ -1312,24 +1330,50 @@
       }
     }
   };
+  ['scrollTop', 'scrollLeft'].forEach(function (item) {
+    cssHooks[item] = {
+      get: function get(elem, prop) {
+        return elem[prop];
+      },
+      set: function set(elem, prop, value) {
+        elem[prop] = value;
+      }
+    };
+  });
 
   function getStyle(elem, prop) {
-    return (window.getComputedStyle ? window.getComputedStyle(elem) : elem.currentStyle)[getCssProp(prop)];
+    return (window.getComputedStyle ? window.getComputedStyle(elem) : elem.currentStyle)[getPrefixedCssProp(prop)];
   }
 
   function setStyle(elem, prop, val) {
-    elem.style[getCssProp(prop)] = val;
+    elem.style[getPrefixedCssProp(prop)] = typeof val === 'number' && !optionalUnitProperties[prop] ? val + 'px' : val;
+  }
+
+  function setStyleIgnoreUnit(elem, prop, val) {
+    elem.style[getPrefixedCssProp(prop)] = val;
   }
 
   function css(elem, prop, value) {
+    if (!elem || !prop) {
+      return;
+    }
+
+    if (isPlainObject(prop)) {
+      for (i in prop) {
+        css(elem, i, prop[i]);
+      }
+
+      return;
+    }
+
     if (value === void 0) {
       return (cssHooks[prop] && cssHooks[prop].get || cssHooks._default.get)(elem, prop);
-    } else {
-      (cssHooks[prop] && cssHooks[prop].set || cssHooks._default.set)(elem, prop, value);
     }
+
+    (cssHooks[prop] && cssHooks[prop].set || cssHooks._default.set)(elem, prop, value);
   }
 
-  function getCssProp(name, host) {
+  function getPrefixedCssProp(name, host) {
     var i, l, prefix, fitName;
 
     if (cssProps[name]) {
@@ -1371,7 +1415,7 @@
 
     transforms = new Map(); // 确保有序性
 
-    str = target.style[getCssProp('transform')] || '';
+    str = target.style[getPrefixedCssProp('transform')] || '';
     reg = /(\w+)\(([^)]+)\)/g;
 
     while (m = reg.exec(str)) {
@@ -1382,7 +1426,7 @@
   }
 
   function parseUnit(value) {
-    return rCssNumVal$1.test(value) ? RegExp.$3 : '';
+    return rCssNumVal.test(value) ? RegExp.$3 : '';
   }
 
   function convertPxToUnit(target, value, unit) {
@@ -1405,18 +1449,18 @@
     return factor * parseFloat(value);
   }
 
-  function getCSSValue(target, prop, unit) {
-    var value = css(target, prop);
+  function getCSSOriginalValue(target, prop, unit) {
+    var value = getStyle(target, prop);
     return unit ? convertPxToUnit(target, value, unit) : value;
   }
 
-  function getTransformValue(target, prop, unit) {
+  function getTransformOriginalValue(target, prop, unit) {
     var value = getTransforms(target).get(prop) || (/scale/.test(prop) ? 1 : 0 + getDefaultUnit(prop));
     return unit ? convertPxToUnit(target, value, unit) : value;
   }
 
-  function getInitValue(target, prop, unit, isTransform) {
-    return (isTransform ? getTransformValue : getCSSValue)(target, prop, unit);
+  function getOriginalValue(target, prop, unit, isTransform) {
+    return (isTransform ? getTransformOriginalValue : getCSSOriginalValue)(target, prop, unit);
   }
 
   function isTransform(prop) {
@@ -1425,15 +1469,18 @@
 
   var cssPlugin = {
     id: 'css',
-    priority: 100,
+    priority: 90,
+    install: function install(animate) {
+      animate.css = css;
+      animate.getPrefixedCssProp = getPrefixedCssProp;
+    },
     init: function init(tween) {
       var data = tween.pluginData,
           cssData,
           target = tween.animatable.target,
-          between = tween.between[0],
           property = tween.property;
 
-      if (!isElement(target) || !getCssProp(property) && !isTransform(property)) {
+      if (!isElement(target) || !getPrefixedCssProp(property) && !isTransform(property)) {
         return;
       }
 
@@ -1449,11 +1496,11 @@
         }
       }
 
-      if (between.from == null) {
-        between.from = getInitValue(target, property, tween.unit, cssData.isTransform);
+      if (tween.from == null) {
+        tween.from = getOriginalValue(target, property, tween.unit, cssData.isTransform);
 
-        if (rCssNumVal$1.test(between.from)) {
-          between.from = parseFloat(RegExp.$2);
+        if (rCssNumVal.test(tween.from)) {
+          tween.from = parseFloat(RegExp.$2);
         }
       }
 
@@ -1461,7 +1508,7 @@
         tween.unit = getDefaultUnit(property);
       }
     },
-    update: function update(progress, tween, value, TERMINATE) {
+    update: function update(tween, value, TERMINATE) {
       var cssData = tween.pluginData.css,
           property;
 
@@ -1481,12 +1528,12 @@
         map.set(property, value);
         value = '';
         map.forEach(function (val, key) {
-          value += key + '(' + val + ') ';
+          return value += key + '(' + val + ') ';
         });
         property = 'transform';
       }
 
-      css(tween.animatable.target, property, value);
+      setStyleIgnoreUnit(tween.animatable.target, property, value);
       return TERMINATE;
     }
   };
@@ -1742,18 +1789,18 @@
 
   var colorPlugin = {
     id: 'color',
-    init: function init(tween, prevTween) {
+    priority: 80,
+    init: function init(tween, TERMINATE) {
       var data = tween.pluginData,
           from,
-          to,
-          pair = tween.between[0];
+          to;
 
-      if (typeof pair.to !== "string" || !isColor(pair.to)) {
+      if (typeof tween.to !== "string" || !isColor(tween.to)) {
         return;
       }
 
-      from = colorToRgba(pair.from);
-      to = colorToRgba(pair.to);
+      from = colorToRgba(tween.from);
+      to = colorToRgba(tween.to);
       tween.between = to.map(function (value, i) {
         return {
           from: from[i],
@@ -1763,8 +1810,9 @@
       });
       tween.unit = '';
       data.color = {};
+      return TERMINATE;
     },
-    update: function update(progress, tween, value) {
+    update: function update(tween, value) {
       var colorData = tween.pluginData.color;
 
       if (!colorData) {
@@ -1775,6 +1823,12 @@
     }
   };
 
+  /*
+  |-------------------------------------------------------------------------------
+  | 处理相对值
+  |-------------------------------------------------------------------------------
+  |
+  */
   function getRelativeValue(from, to, operator) {
     if (!operator) {
       return to;
@@ -1792,27 +1846,39 @@
 
       case '/':
         return from / to;
+
+      case '%':
+        return from / to;
     }
   }
 
   var relativePlugin = {
     id: 'relative',
-    init: function init(tween) {
-      var between, from;
+    priority: 70,
+    init: function init(tween, TERMINATE) {
+      var from;
 
-      if (!tween.singleValue || !tween.operator) {
+      if (!tween.operator) {
         return;
       }
 
-      between = tween.between[0];
-      from = between.from;
-      tween.operator;
+      from = tween.from;
+
+      if (Array.isArray(from)) {
+        from = from[0];
+      }
 
       if (typeof from !== 'number') {
         from = Number(from) || 0;
       }
 
-      return getRelativeValue(from, between.to, tween.operator);
+      tween.to = getRelativeValue(from, parseFloat(tween.to), tween.operator);
+      tween.between = [{
+        from: from,
+        to: tween.to,
+        round: tween.round
+      }];
+      return TERMINATE;
     },
     update: function update() {}
   };
@@ -1934,8 +2000,7 @@
       x: cx + lx,
       y: cy + ly
     };
-  } // 待实现
-
+  }
 
   function getPointAtLengthByEllipse(elem, length) {
     var totalLength = getTotalLength(elem),
@@ -2067,46 +2132,46 @@
   }
 
   var SVG = {};
-
-  function getGeometry(elem, percent) {
-    elem = typeof elem === 'string' ? document.querySelector(elem) : elem;
-    percent = percent || 100;
-    return function (property) {
-      return {
-        el: elem,
-        property: property,
-        totalLength: getTotalLength(elem) * (percent / 100),
-        type: SVG
-      };
-    };
-  }
-
-  function setDashoffset(elem) {
-    var length = getTotalLength(elem);
-    elem.setAttribute('stroke-dasharray', length);
-    return length;
-  }
-
   var svgPlugin = {
     id: 'svg',
-    install: function install(animate) {
-      animate.geometry = getGeometry;
-      animate.setDashoffset = setDashoffset;
+    priority: 60,
+    install: function install(animate, SPECIAL_VALUE) {
+      animate.geometry = function (elem, percent) {
+        elem = typeof elem === 'string' ? document.querySelector(elem) : elem;
+        percent = percent || 100;
+        return function (property) {
+          return {
+            el: elem,
+            property: property,
+            totalLength: getTotalLength(elem) * (percent / 100),
+            sign: SPECIAL_VALUE,
+            type: SVG
+          };
+        };
+      };
+
+      animate.setDashoffset = function (elem) {
+        var length = getTotalLength(elem);
+        elem.setAttribute('stroke-dasharray', length);
+        return length;
+      };
     },
     init: function init(tween) {
       var data = tween.pluginData,
-          between = tween.between[0],
-          to = between.to;
+          to = tween.to;
 
-      if (to && to.type === SVG) {
-        between.from = 0;
-        data.svg = {
-          geometry: to
-        };
-        between.to = to.totalLength;
+      if (!to || to.type !== SVG) {
+        return;
       }
+
+      data.svg = {
+        geometry: to
+      };
+      tween.from = 0;
+      tween.to = to.totalLength;
+      tween.unit = '';
     },
-    update: function update(progress, tween, value) {
+    update: function update(tween, value) {
       var svgData = tween.pluginData.svg,
           p0,
           p1;
@@ -2116,7 +2181,6 @@
       }
 
       value = value[0];
-      tween.unit = '';
       p0 = getPoint(-1);
       p1 = getPoint(0);
 
@@ -2137,10 +2201,104 @@
     }
   };
 
-  animate.use(svgPlugin);
+  /*
+  |-------------------------------------------------------------------------------
+  | 处理多个值
+  |-------------------------------------------------------------------------------
+  |
+  | 字符串里含有数值，会将数值拿出来求值，
+  | 而后将新的值替换字符串里旧的值并返回替换后的字符串。
+  |
+  */
+  var multiPlugin = {
+    id: 'multi',
+    priority: 50,
+    init: function init(tween) {
+      var data = tween.pluginData,
+          from,
+          to,
+          toMatch,
+          fromMatch;
+      to = tween.to;
+
+      if (typeof to !== 'string' || !(toMatch = to.match(rNums))) {
+        return;
+      }
+
+      data.multi = {
+        strings: to.split(rNums)
+      };
+      from = tween.from;
+
+      if (typeof from === 'string' && (fromMatch = from.match(rNums))) {
+        from = fromMatch;
+      } else if (!Array.isArray(from)) {
+        from = [tween.from];
+      }
+
+      tween.from = from;
+      tween.to = toMatch;
+    },
+    update: function update(tween, value) {
+      var multiData = tween.pluginData.multi;
+
+      if (!multiData) {
+        return;
+      }
+
+      return value.map(function (num, i) {
+        return multiData.strings[i] + num;
+      }).join('');
+    }
+  };
+
+  /*
+  |-------------------------------------------------------------------------------
+  | 初始化守卫
+  |-------------------------------------------------------------------------------
+  |
+  */
+  var initGuardPlugin = {
+    id: 'initGuard',
+    priority: 0,
+    init: function init(tween, TERMINATE) {
+      var to, from;
+
+      if (tween.between) {
+        return;
+      }
+
+      to = tween.to;
+
+      if (!Array.isArray(to)) {
+        to = [to];
+      }
+
+      from = tween.from;
+
+      if (!Array.isArray(from)) {
+        from = [from];
+      }
+
+      tween.between = to.map(function (value, i) {
+        return {
+          from: Number(from[i]) || 0,
+          to: Number(value) || 0,
+          round: tween.round
+        };
+      });
+      return TERMINATE;
+    },
+    update: function update() {}
+  };
+
+  animate.use(updateGuardPlugin);
+  animate.use(cssPlugin);
   animate.use(colorPlugin);
   animate.use(relativePlugin);
-  animate.use(cssPlugin);
+  animate.use(svgPlugin);
+  animate.use(multiPlugin);
+  animate.use(initGuardPlugin);
 
   return animate;
 

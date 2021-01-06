@@ -28,9 +28,7 @@ function step() {
     if ( timelines.size === 0 ) {
         stop();
     } else {
-        new Set( timelines ).forEach(function( tick ) {
-            tick();
-        });
+        new Set( timelines ).forEach(tick => tick());
 
         id = request( step );
     }

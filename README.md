@@ -121,11 +121,12 @@ animate({
 ```
 
 ### 属性值的类型
-- String
-- Number
-- Array[<起始值>, <结束值>]，起始和结束值可以为'auto'，表示获取元素当前值。
-- Array[{} [,{}...]]，属性关键帧，具体使用可参看下面。
+- String：'100'、'+=100'、'50%'、'-=50px'、'字符串里包含数值即可：来个整数50来个负数-50再来个小数3.14'
+- Number：3.14、50、-60
+- animate.withFrom(<起始值>, <结束值>)。
+- Array，数组的元素一般为数值；一般情况下需要指定起始值，否则起始值数组元素设置0；每一帧返回的值为变化后的数组。
 - Object，用来设置每个属性单独的动画效果，需包含一个value属性表示当前属性值，其他属性可选如下：
+- animate.keyframes([...<接受上面的任意类型>])，属性关键帧，具体使用可参看下面“属性关键帧”。
 
 ``` js
 // tweenSetting
@@ -146,28 +147,28 @@ animate({
 ``` js
 animate({
     properties: {
-        translateX: [
+        translateX: animate.keyframes([
             { value: 250, duration: 1000, delay: 500 },
             { value: 0, duration: 1000, delay: 500 }
-        ],
-        translateY: [
+        ]),
+        translateY: animate.keyframes([
             { value: -100, duration: 500 },
             { value: 100, duration: 500, delay: 1000 },
             { value: 0, duration: 500, delay: 1000 }
-        ],
-        scaleX: [
+        ]),
+        scaleX: animate.keyframes([
             { value: 4, duration: 100, delay: 500, easing: 'easeOutExpo' },
             { value: 1, duration: 900 },
             { value: 4, duration: 100, delay: 500, easing: 'easeOutExpo' },
             { value: 1, duration: 900 }
-        ],
-        scaleY: [
+        ]),
+        scaleY: animate.keyframes([
             { value: [1.75, 1], duration: 500 },
             { value: 2, duration: 50, delay: 1000, easing: 'easeOutExpo' },
             { value: 1, duration: 450 },
             { value: 1.75, duration: 50, delay: 1000, easing: 'easeOutExpo' },
             { value: 1, duration: 450 }
-        ]
+        ])
     },
     ...
 });
@@ -175,10 +176,10 @@ animate({
 
 
 ### 动画关键帧
-在属性关键帧中，同一属性多个值的继发执行的，但不同的属性是并发执行的；
+在属性关键帧中，同一属性多个值是继发执行的，但不同的属性是并发执行的；
 如果想要实现不同属性的继发执行，则需要使用动画关键帧。
-可以在选项参数keyframes定义动画关键帧，每一个关键帧就是一个properties对象；
-其实也可以使用keyframes选项完全代替properties。
+可以在选项参数keyframes定义动画关键帧，每一个动画关键帧每一帧就是一个properties对象；
+keyframes和properties也可以一起使用。
 
 ``` js
 animate({
@@ -187,10 +188,10 @@ animate({
             translateY: -100,
             scale: 2
         },
-        {translateX: 100},
-        {translateY: 100},
-        {translateX: 0},
-        {translateY: 0}
+        { translateX: 100 },
+        { translateY: 100 },
+        { translateX: 0 },
+        { translateY: 0 }
     ],
     ...
 });
@@ -200,7 +201,7 @@ animate({
 ## 实例方法
 
 ### animate#finish()
-立即完成当前动画。
+立即完成当前动画（只能完成一次动画；loop配置项可以设置多次动画，甚至无限次）。
 
 ### animate#getPosition()
 返回动画当前已播放时长的毫秒数。
@@ -215,7 +216,7 @@ animate({
 暂停当前动画。
 
 ### animate#play()
-继续播放动画。
+继续播放动画（如果动画在complete状态下调用play，相当于调用restart）。
 
 ### animate#restart()
 重新播放动画。
@@ -228,6 +229,12 @@ animate({
 
 
 ## 辅助函数
+
+### animate.withFrom( from: any, to: any )
+带起始值的属性值。
+
+### animate.keyframes( keyframes: any[] )
+用于属性关键帧。
 
 ### animate.random( min: number, max: number ): number
 返回一个随机数。
@@ -299,6 +306,25 @@ options = {
 };
 ```
 
+### animate.getPrefixedCssProp( property: string ): null | string
+接受一个元素样式对象的属性名，返回一个兼容当前浏览器的可能带有前缀的属性名；
+不兼容则返回null。
+
+### animate.css( elem: Element, prop: string )
+获取元素样式值。
+
+### animate.css( elem: Element, prop: string, value: number | string )
+设置元素样式值。
+
+### animate.css( elem: Element, object: Object )
+批量设置元素样式。
+
+### animate.Map()
+animate使用Map来提升性能，并对不支持Map的浏览器进行简单的实现。
+
+### animate.Set()
+animate使用Set来提升性能，并对不支持Set的浏览器进行简单的实现。
+
 
 ## engine
 engine对象拥有两个对外的方法：add、remove，两方法都接受一个函数作为参数；
@@ -348,7 +374,7 @@ engine是内部使用的引擎，也可以使用animate.engine来对外访问，
 3. 低版本Firefox
     高版本完美兼容；低版本除了path元素正常，其他元素不堪入目。
 
-总结：如果不需要兼容低版本浏览器，则元素随便用；若要支持低版本浏览器，则仅使用path元素实现画线动画。
+总结：如果不需要兼容低版本浏览器，则元素随便用；若要支持低版本浏览器，则建议仅使用path元素实现画线动画。
 
 
 # 路径动画兼容性

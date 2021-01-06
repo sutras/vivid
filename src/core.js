@@ -1,12 +1,13 @@
-import easingStrategies from './easing';
+import easing from './easing';
 import engine from './engine';
 import stagger from './stagger';
 import Map from './map';
+import Set from './set';
 import {
     copyObject, overrideObject, assignObject,
-    isPlainObject, isEmptyObject, isArrayLike, isUndefined,
+    isPlainObject, isEmptyObject, isArrayLike,
     flattenArray, uniqueArray, isFunction,
-    sortBy, random
+    sortBy, random, rCssNumVal,
 } from './util';
 
 
@@ -16,11 +17,6 @@ import {
 |-------------------------------------------------------------------------------
 |
 */
-const rNumSrc = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source;
-const unit = '%|px|em|ex|ch|rem|vw|vh|vmin|vmax|pc|pt|in|cm|mm|deg|rad|turn';
-const rCssNumVal = new RegExp('^([+\\-*%]=|)(' + rNumSrc + ')(' + unit + '|)$', 'i');
-const rNums = new RegExp(rNumSrc, 'g');
-
 const DIRECTION_ALTERNATE_REVERSE = 'alternate-reverse';
 const DIRECTION_REVERSE = 'reverse';
 const DIRECTION_ALTERNATE = 'alternate';
@@ -30,8 +26,11 @@ const DIRECTION_ALTERNATE = 'alternate';
 const plugins = [];
 const ids = {};
 
+// 类型
+const SPECIAL_VALUE = {};
 const TERMINATE = {};
-
+const WITH_FROM = {};
+const KEYFRAMES = {};
 
 function parseTargets( target ) {
     let result = [],
@@ -44,25 +43,19 @@ function parseTargets( target ) {
     for ( i = 0, l = target.length; i < l; i++ ) {
         item = target[i];
         if ( item ) {
-            if ( item && item.nodeType === 1 ) {
-                result.push( item );
-            } else if ( typeof item === 'string' &&
-                    document.querySelectorAll &&
-                    ( item = document.querySelectorAll( item ) ) ||
-                    isArrayLike( item ) ) {
-
+            if ( typeof item === 'string' &&
+                        (item = document.querySelectorAll( item )) ||
+                        isArrayLike( item ) ) {
                 result.push.apply( result, item );
+            } else if ( typeof item === 'object' || typeof item === 'function' ) {
+                result.push( item );
             }
         }
     }
     return uniqueArray( result );
 }
 function getEasing( ease ) {
-    return isFunction( ease ) ? ease : easingStrategies[ ease ] || easingStrategies[ easingStrategies.def ];
-}
-
-function decomposeValue( value ) {
-    return rCssNumVal.exec( value );
+    return isFunction( ease ) ? ease : easing[ ease ] || easing[ easing.def ];
 }
 
 function isReverse( direction ) {
@@ -82,11 +75,11 @@ function getTweenValue( progress, tween ) {
         delay = tween.delay,
         begin = tween.begin;
 
-    function getOne( pair ) {
+    function getOneItem( item ) {
         let value,
-            from = pair.from,
-            to = pair.to,
-            round = pair.round;
+            from = item.from,
+            to = item.to,
+            round = item.round;
 
         value = progress <= begin + delay ?
             from :
@@ -100,9 +93,7 @@ function getTweenValue( progress, tween ) {
         return value;
     }
 
-    return tween.between.map(function( pair ) {
-        return getOne( pair );
-    });
+    return tween.between.map(item => getOneItem( item ));
 }
 
 
@@ -117,27 +108,40 @@ function getTweenValue( progress, tween ) {
 */
 
 function getAnimatables( targets ) {
-    return targets.map( function( target, i ) {
-        return {
-            target: target,
-            id: i,
-            total: targets.length
-        };
-    });
+    return targets.map(( target, i ) => ({
+        target,
+        id: i,
+        total: targets.length
+    }));
 }
 
-function structureValue( value ) {
-    if ( isPlainObject( value ) && !value.type ) {
-        value = [ value ];
-    } else if ( !Array.isArray( value ) || !isPlainObject( value[0] ) ) {
-        value = [{ value: value }];
-    }
+// # 基础类型
+// - 数值
+// - 字符串
+// - 数组
+// - 对象
+// 
+// # 特殊类型
+// - 带起始值 withFrom
+// - 关键帧 keyframes
+// - 其他类型
 
-    return value;
+// 统一转换为 [{ value }]
+
+function structureTween( value, animatable, keyframe ) {
+    value = getFuncValue( value, animatable );
+
+    if ( value.type === KEYFRAMES ) {
+        return value.keyframes.map( value => structureTween( value, animatable, true ) );
+    }
+    if ( !isPlainObject( value ) || value.sign === SPECIAL_VALUE ) {
+        value = { value };
+    }
+    return keyframe ? value : [ value ];
 }
 
 function normalizeTweens( animatable, tweenConfigs, property, options, beginTime, animationProperties, averageDuration ) {
-    let duration = isUndefined( averageDuration ) ? options.duration : averageDuration,
+    let duration = averageDuration === void 0 ? options.duration : averageDuration,
         l = tweenConfigs.length,
         tweens,
         endTime = beginTime || 0,
@@ -146,24 +150,31 @@ function normalizeTweens( animatable, tweenConfigs, property, options, beginTime
     averageDuration = duration / l;
 
     function normalizeTween( tweenConfig, index, prevTween ) {
-        let duration = getFuncValue( isUndefined( tweenConfig.duration ) ? averageDuration : tweenConfig.duration, animatable ),
-            delay = getFuncValue( isUndefined( tweenConfig.delay ) ? index === 0 ? options.delay : 0 : tweenConfig.delay, animatable ),
-            endDelay = getFuncValue( isUndefined( tweenConfig.endDelay ) ? index === l - 1 ? options.endDelay : 0 : tweenConfig.endDelay, animatable ),
+        let duration = getFuncValue( tweenConfig.duration === void 0 ? averageDuration : tweenConfig.duration, animatable ),
+            delay = getFuncValue( tweenConfig.delay === void 0 ? index === 0 ? options.delay : 0 : tweenConfig.delay, animatable ),
+            endDelay = getFuncValue( tweenConfig.endDelay === void 0 ? index === l - 1 ? options.endDelay : 0 : tweenConfig.endDelay, animatable ),
             total = delay + duration + endDelay,
             begin = endTime,
             end = begin + total,
-            to, from, tween, round,
+            value, to, from, tween,
+            round = tweenConfig.round || options.round,
+            easing = getEasing( tweenConfig.easing || options.easing ),
             valueStrategy,
-            values, i, parts;
+            values, i, l, parts,
+            withFrom,
+            retValue;
 
         endTime += total;
 
-        to = tweenConfig.value;
-        if ( !isPlainObject( to ) ) {
-            if ( Array.isArray( to ) ) {
-                from = to[0];
-                to = to[1];
-            }
+        value = tweenConfig.value;
+        withFrom = value.type === WITH_FROM;
+
+        // 带有起始值
+        if ( withFrom ) {
+            from = value.from;
+            to = value.to;
+        } else {
+            to = value;
         }
 
         if ( !prevTween ) {
@@ -171,66 +182,64 @@ function normalizeTweens( animatable, tweenConfigs, property, options, beginTime
                 ( values = animationProperties[ property ] ) ? values[ values.length - 1 ] : null;
         }
 
+        from = withFrom ? getFuncValue( from, animatable ) : ( prevTween ? prevTween.to : animatable.target[ property ] );
+
         tween = {
-            animatable: animatable,
-            property: property,
-            duration: duration,
-            delay: delay,
-            endDelay: endDelay,
-            value: tweenConfig.value,
-            begin: begin,
-            end: end,
-            easing: getEasing( tweenConfig.easing || options.easing ),
+            animatable,
+            property,
+            duration,
+            delay,
+            endDelay,
+            begin,
+            end,
+            easing,
             pluginData: {}
         };
 
-        from = getFuncValue( isUndefined( from ) ? ( prevTween ? prevTween.between[0].to : animatable.target[ property ] ) : from, animatable );
-        to = getFuncValue( to, animatable );
-        round = tweenConfig.round || options.round;
-
-        parts = decomposeValue( to );
-
-        if ( parts ) {
+        if ( parts = rCssNumVal.exec( to ) ) {
             assignObject( tween, {
-                singleValue: true,
                 operator: parts[1],
                 unit: parts[3]
             });
             to = parseFloat( parts[2] ) || 0;
         }
-        tween.between = [{
-            from: from,
-            to: to,
-            round: round
-        }];
 
-        for ( i = plugins.length - 1; i >= 0; i-- ) {
-            plugins[i].init( tween );
+        tween.from = from;
+        tween.to = to;
+        tween.round = round;
+
+        for ( i = 0, l = plugins.length; i < l; i++ ) {
+            retValue = plugins[i].init( tween, TERMINATE );
+            if ( retValue === TERMINATE ) {
+                break;
+            }
         }
 
         return tween;
     }
 
-    tweens = sortBy( tweenConfigs.map( function( tweenConfig, index ) {
-        prevTween = normalizeTween( tweenConfig, index, prevTween );
-        return prevTween;
+    tweens = sortBy( tweenConfigs.map(( tweenConfig, index ) => {
+        return ( prevTween = normalizeTween( tweenConfig, index, prevTween ) );
     }), function( item ) {
         return item.begin;
     });
 
     return {
-        endTime: endTime,
-        tweens: tweens
+        endTime,
+        tweens
     };
 }
 
 function getOneKeyframeSetting( animatable, keyframe, options, beginTime, animationProperties, averageDuration ) {
-    let props = {}, p;
+    let props = {}, p, value;
 
     for ( p in keyframe ) {
+        if ( (value = keyframe[p]) == null ) {
+            continue;
+        }
         props[p] = normalizeTweens(
             animatable,
-            structureValue( keyframe[p] ),
+            structureTween( value, animatable ),
             p,
             options, 
             beginTime,
@@ -248,7 +257,7 @@ function getKeyframesAnimationProperties( animatable, keyframes, options ) {
         endTime = 0,
         averageDuration = options.duration / keyframes.length;
 
-    keyframes.forEach( function( keyframe ) {
+    keyframes.forEach( keyframe => {
         let p;
 
         oneKeyframeSetting = getOneKeyframeSetting( animatable, keyframe, options, endTime, animationProperties, averageDuration );
@@ -277,13 +286,13 @@ function flattenKeyframesAnimationProperties( animationPropertiesGroup ) {
 }
 
 function getAllAnimationProperties( animatable, properties, keyframes, options ) {
-    return flattenKeyframesAnimationProperties( [ keyframes, [ properties ] ].map( function( keyframes ) {
+    return flattenKeyframesAnimationProperties( [ keyframes, [ properties ] ].map( keyframes => {
         return getKeyframesAnimationProperties( animatable, keyframes, options );
     }) );
 }
 
 function getAnimations( animatables, properties, keyframes, options ) {
-    return flattenArray( animatables.map( function( animatable ) {
+    return flattenArray( animatables.map( animatable => {
         let animationProperties = getAllAnimationProperties( animatable, properties || {}, keyframes || [], options ),
             p, animations = [];
 
@@ -296,10 +305,8 @@ function getAnimations( animatables, properties, keyframes, options ) {
 }
 
 function getAnimationsDuration( animations ) {
-    return Math.max.apply( null, animations.map( function( animation ) {
-        return Math.max.apply( null, animation.tweens.map( function( tween ) {
-            return tween.end;
-        }) );
+    return Math.max.apply( null, animations.map( animation => {
+        return Math.max.apply( null, animation.tweens.map( tween => tween.end) );
     }) );
 }
 
@@ -322,7 +329,7 @@ const defaultTweenSettings = {
     duration: 400,
     delay: 0,
     endDelay: 0,
-    easing: easingStrategies.def,
+    easing: easing.def,
     round: 0
 };
 
@@ -351,6 +358,10 @@ function createTimeline( configuration ) {
 
     if ( autoplay ) {
         start();
+    }
+
+    function isCompleted() {
+        return loopCount === 0 && position === duration && !isPlaying;
     }
 
     function invokeCallback( name ) {
@@ -386,6 +397,10 @@ function createTimeline( configuration ) {
         }
         if ( isPlaying ) {
             return;
+        }
+        // complete状态下，调用play，相当于调用restart
+        if ( isCompleted() ) {
+            return restart();
         }
         isPlaying = true;
         startTime = new Date();
@@ -459,7 +474,9 @@ function createTimeline( configuration ) {
     }
 
     function finish() {
-        seek( duration );
+        if ( !isCompleted() ) {
+            seek( duration );
+        }
     }
 
     return {
@@ -469,18 +486,18 @@ function createTimeline( configuration ) {
         pause,
         seek,
         finish,
-        tick: function() {
+        tick() {
             if ( delegate ) {
                 tick();
             }
         },
-        getPosition: function() {
+        getPosition() {
             return position;
         },
-        getDuration: function() {
+        getDuration() {
             return duration;
         },
-        getProgress: function() {
+        getProgress() {
             return duration === 0 ? 0 : position / duration;
         }
     };
@@ -497,7 +514,7 @@ function createTimeline( configuration ) {
 */
 function createAnimation( tweens ) {
     function update( progress ) {
-        let i, l, tween, currTween, value, calcVal;
+        let i, tween, currTween, value, calcVal;
 
         for ( i = 0; ( tween = tweens[i++] ); ) {
             if ( tween.begin <= progress && tween.end >= progress ) {
@@ -505,7 +522,7 @@ function createAnimation( tweens ) {
                 break;
             }
             if ( progress > tween.end ) {
-                if ( !tweens[i+1] || tweens[i+1].begin > progress ) {
+                if ( !tweens[i + 1] || tweens[i + 1].begin > progress ) {
                     currTween = tween;
                 }
             }
@@ -514,25 +531,21 @@ function createAnimation( tweens ) {
         if ( currTween ) {
             value = getTweenValue( progress, currTween );
 
-            for ( i = 0, l = plugins.length; i < l; i++ ) {
-                calcVal = plugins[i].update( progress, currTween, value, TERMINATE );
+            for ( i = plugins.length - 1; i >= 0; i-- ) {
+                calcVal = plugins[i].update( currTween, value, TERMINATE );
                 if ( calcVal === TERMINATE ) {
                     return;
                 }
-                if ( !isUndefined( calcVal ) ) {
+                if ( calcVal !== void 0 ) {
                     value = calcVal;
                 }
             }
-            if ( Array.isArray( value ) ) {
-                value = value[0];
-            }
-            currTween.animatable.target[ currTween.property ] = value + currTween.unit;
         }
     }
 
     return {
-        update: update,
-        tweens: tweens
+        update,
+        tweens
     };
 }
 
@@ -547,7 +560,6 @@ function animate( configuration ) {
     return createTimeline( configuration );
 }
 
-animate.random = random;
 animate.addEasing = function( name, handle ) {
     if ( isPlainObject( name ) ) {
         for ( let i in name ) {
@@ -558,8 +570,28 @@ animate.addEasing = function( name, handle ) {
     }
 };
 
+animate.withFrom = function( from, to ) {
+    return {
+        from,
+        to,
+        sign: SPECIAL_VALUE,
+        type: WITH_FROM
+    };
+};
+
+// 属性关键帧
+animate.keyframes = function( keyframes ) {
+    return {
+        type: KEYFRAMES,
+        keyframes
+    };
+};
+
 animate.stagger = stagger;
 animate.engine = engine;
+animate.random = random;
+animate.Set = Set;
+animate.Map = Map;
 
 animate.use = function( plugin ) {
     let priority, i, l, id;
@@ -571,7 +603,7 @@ animate.use = function( plugin ) {
     // 优先级越高，越早读取，越晚写入
     priority = plugin.priority || 0;
     for ( i = 0, l = plugins.length; i < l; i++ ) {
-        if ( priority < plugins[i].priority ) {
+        if ( priority > plugins[i].priority ) {
             break;
         }
     }
@@ -580,7 +612,7 @@ animate.use = function( plugin ) {
     ids[ id ] = true;
 
     if ( isFunction( plugin.install ) ) {
-        plugin.install( animate );
+        plugin.install( animate, SPECIAL_VALUE );
     }
 };
 

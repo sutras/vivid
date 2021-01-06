@@ -4,7 +4,7 @@
 |-------------------------------------------------------------------------------
 |
 */
-import namedColor from './namedColor';
+import namedColor from '../namedColor';
 
 function hexToRgb( hex ) {
     let r = /[0-9a-f]{2}/ig, rgb = [];
@@ -97,29 +97,29 @@ function isColor( value ) {
 
 export default {
     id: 'color',
-    init: function( tween, prevTween ) {
+    priority: 80,
+    init( tween, TERMINATE ) {
         let data = tween.pluginData,
-            from, to,
-            pair = tween.between[0];
+            from, to;
 
-        if ( typeof pair.to !== "string" || !isColor( pair.to ) ) {
+        if ( typeof tween.to !== "string" || !isColor( tween.to ) ) {
             return;
         }
 
-        from = colorToRgba( pair.from );
-        to = colorToRgba( pair.to );
+        from = colorToRgba( tween.from );
+        to = colorToRgba( tween.to );
 
-        tween.between = to.map(function( value, i ) {
-            return {
-                from: from[i],
-                to: value,
-                round: i === 3 ? 0 : 1
-            };
-        });
+        tween.between = to.map(( value, i ) => ({
+            from: from[i],
+            to: value,
+            round: i === 3 ? 0 : 1
+        }));
         tween.unit = '';
         data.color = {};
+
+        return TERMINATE;
     },
-    update: function( progress, tween, value ) {
+    update( tween, value ) {
         let i, l,
             colorData = tween.pluginData.color;
 

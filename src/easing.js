@@ -4,7 +4,7 @@
 |-------------------------------------------------------------------------------
 |
 */
-export default {
+const easing = {
     def: 'easeInOutQuad',
     linear:  function (k) {  //无缓动效果
         return k;
@@ -111,7 +111,7 @@ export default {
         return 0.5 * ((k -= 2) * k * ((s + 1) * k + s) + 2);
     },
     easeInBounce: function(k) {
-        return 1 - easingStrategies.easeOutBounce(1 - k);
+        return 1 - easing.easeOutBounce(1 - k);
     },
     easeOutBounce: function(k) {
         if (k < (1 / 2.75)) {
@@ -125,7 +125,9 @@ export default {
         }
     },
     easeInOutBounce: function(k) {
-        if (k < 0.5) return easingStrategies.easeInBounce(k * 2) * 0.5;
-        return easingStrategies.easeOutBounce(k * 2 - 1) * 0.5 + 0.5;
+        if (k < 0.5) return easing.easeInBounce(k * 2) * 0.5;
+        return easing.easeOutBounce(k * 2 - 1) * 0.5 + 0.5;
     }
 };
+
+export default easing;

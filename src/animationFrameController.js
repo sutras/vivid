@@ -28,10 +28,8 @@ export default function getAnimationFrameController() {
     if ( window.webkitRequestAnimationFrame && webkitRequestAnimationFrame(String) ) {
         return {
             // 修正某个特异的webkit版本下没有time参数（意义不大，而且这个time并不是页面打开到如今的毫秒数）
-            request: function( callback ) {
-                return window.webkitRequestAnimationFrame(function() {
-                    return callback( new Date() - 0 );
-                });
+            request( callback ) {
+                return window.webkitRequestAnimationFrame(() => callback( new Date() - 0 ));
             },
             cancel: window.webkitCancelAnimationFrame || window.webkitCancelRequestAnimationFrame
         };
@@ -58,14 +56,14 @@ export default function getAnimationFrameController() {
     }
 
     return {
-        request: function( handler ) {
+        request( handler ) {
             callbacks.push( handler );
             if ( !timer ) {
                 timer = window.setTimeout( playAll, millisec );
             }
             return id++;
         },
-        cancel: function( id ) {
+        cancel( id ) {
             callbacks[id - cursor] = 'cancelled';
         }
     };

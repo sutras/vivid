@@ -14,8 +14,14 @@
             body {
                 margin: 0;
                 color: orange;
-                background-image: linear-gradient( to right, rgba(0, 0, 0, .1) 1px, transparent 1px),
-                linear-gradient( to bottom, rgba(0, 0, 0, .1) 1px, transparent 1px);
+                background-image: -webkit-linear-gradient(left, rgba(0, 0, 0, .1) 1px, transparent 1px),
+                                  -webkit-linear-gradient(top, rgba(0, 0, 0, .1) 1px, transparent 1px);
+                background-image: -moz-linear-gradient(left, rgba(0, 0, 0, .1) 1px, transparent 1px),
+                                  -moz-linear-gradient(top, rgba(0, 0, 0, .1) 1px, transparent 1px);
+                background-image: -o-linear-gradient(left, rgba(0, 0, 0, .1) 1px, transparent 1px),
+                                  -o-linear-gradient(top, rgba(0, 0, 0, .1) 1px, transparent 1px);
+                background-image: linear-gradient(to right, rgba(0, 0, 0, .1) 1px, transparent 1px),
+                                  linear-gradient(to bottom, rgba(0, 0, 0, .1) 1px, transparent 1px);
                 background-size: 50px 50px;
                 background-repeat: repeat;
             }
@@ -147,10 +153,6 @@
         </div>
         <script type="text/javascript">
             (function() {
-                if ( typeof SVGElement === 'undefined' ) {
-                    return;
-                }   
-
                 // 路径动画
                 [].slice.call(document.querySelectorAll('#drawlineAndPath svg *')).forEach(function(el) {
                     var geometry = animate.geometry(el);
@@ -173,7 +175,7 @@
                 animate({
                     targets: 'svg *',
                     properties: {
-                        strokeDashoffset: [animate.setDashoffset, 0]
+                        strokeDashoffset: animate.withFrom( animate.setDashoffset, 0 )
                     },
                     duration: 3000,
                     easing: 'linear',
@@ -202,31 +204,42 @@
             </div>
         </div>
         <script type="text/javascript">
-            // (function() {
-            //     if ( typeof SVGElement === 'undefined' ) {
-            //         return;
-            //     }
-            //     animate({
-            //         properties: {
-            //             points: [
-            //                 {
-            //                     value: [
-            //                         '70 24 119.574 60.369 100.145 117.631 50.855 101.631 3.426 54.369',
-            //                         '70 41 118.574 59.369 111.145 132.631 60.855 84.631 20.426 60.369'
-            //                     ]
-            //                 },
-            //                 { value: '70 6 119.574 60.369 100.145 117.631 39.855 117.631 55.426 68.369' },
-            //                 { value: '70 57 136.574 54.369 89.145 100.631 28.855 132.631 38.426 64.369' },
-            //                 { value: '70 24 119.574 60.369 100.145 117.631 50.855 101.631 3.426 54.369' }
-            //             ]
-            //         },
-            //         targets: '#variant .polymorph',
-            //         duration: 1532,
-            //         round: 10,
-            //         loop: true,
-            //         direction: 'alternate'
-            //     });
-            // })();
+            (function() {
+                var polymorph = document.querySelector('#variant .polymorph');
+                var ProxyObj = {};
+
+                animate({
+                    targets: ProxyObj,
+                    properties: {
+                        points: animate.keyframes([
+                            animate.withFrom(
+                                '70 24 119.574 60.369 100.145 117.631 50.855 101.631 3.426 54.369',
+                                '70 41 118.574 59.369 111.145 132.631 60.855 84.631 20.426 60.369'
+                            ),
+                            '70 6 119.574 60.369 100.145 117.631 39.855 117.631 55.426 68.369',
+                            '70 57 136.574 54.369 89.145 100.631 28.855 132.631 38.426 64.369',
+                            '70 24 119.574 60.369 100.145 117.631 50.855 101.631 3.426 54.369'
+                        ])
+                        // points: animate.keyframes([
+                        //     animate.withFrom(
+                        //         [70, 24, 119.574, 60.369, 100.145, 117.631, 50.855, 101.631, 3.426, 54.369],
+                        //         [70, 41, 118.574, 59.369, 111.145, 132.631, 60.855, 84.631, 20.426, 60.369]
+                        //     ),
+                        //     [70, 6, 119.574, 60.369, 100.145, 117.631, 39.855, 117.631, 55.426, 68.369],
+                        //     [70, 57, 136.574, 54.369, 89.145, 100.631, 28.855, 132.631, 38.426, 64.369],
+                        //     [70, 24, 119.574, 60.369, 100.145, 117.631, 50.855, 101.631, 3.426, 54.369]
+                        // ])
+                    },
+                    duration: 1532,
+                    round: 10,
+                    loop: true,
+                    update: function() {
+                        polymorph.setAttribute('points', ProxyObj.points)
+                        // polymorph.setAttribute('points', ProxyObj.points.join(' '))
+                    },
+                    direction: 'alternate'
+                });
+            })();
         </script>
 
         <div class="box">
@@ -237,7 +250,7 @@
             animate({
                 targets: document.getElementById('age'),
                 properties: {
-                    value: [1000, '2000%']
+                    value: animate.withFrom('1000', '2000%')
                 },
                 duration: 1532,
                 round: 10,
@@ -254,6 +267,7 @@
                 <div class="square"></div>
                 <div class="square"></div>
                 <div class="square"></div>
+                <div class="square"></div>
             </div>
         </div>
         <script type="text/javascript">
@@ -261,24 +275,32 @@
                 targets: '#relativeBox .square',
                 properties: {
                     translateX: function( target, id, total ) {
-                        return ['+=100px', '-=50px', '*=200%', '/=20px'][ id ];
+                        return [
+                                '+=100px',
+                                '-=50px',
+                                animate.withFrom(10, '*=300%'),
+                                animate.withFrom(200, '/=2px'),
+                                animate.withFrom(100, '%=50px')
+                            ][ id ];
                     }
                 },
                 loop: true,
-                duration: 1000
+                duration: 1000,
+                direction: 'alternate'
             });
 
         </script>
 
         <div class="box">
             <div class="box-title">颜色</div>
-            <div class="square" id="backgroundColorEl"></div>
+            <div class="square" style="width: 100px; padding: 10px;" id="colorEl"><b>颜色</b></div>
         </div>
         <script type="text/javascript">
             animate({
-                targets: document.getElementById('backgroundColorEl'),
+                targets: document.getElementById('colorEl'),
                 properties: {
-                    backgroundColor: 'green'
+                    backgroundColor: 'green',
+                    color: 'rgba(0,0,0,1)'
                 },
                 duration: 1000,
                 loop: true,
@@ -325,13 +347,10 @@
                         translateX: 200,
                         translateY: 100
                     },
-                    loop: true,
-                    // autranslateYlay: false,
                     duration: 4000,
-                    direction: 'alternate'
+                    // direction: 'alternate'
                 });
                 control( controlAnima );
-
             })();
 
 
@@ -598,28 +617,28 @@
             var propKeyframesAnima = animate({
                 targets: document.getElementById('propKeyframesEl'),
                 properties: {
-                    translateX: [
+                    translateX: animate.keyframes([
                         { value: 250, duration: 1000, delay: 500 },
                         { value: 0, duration: 1000, delay: 500 }
-                    ],
-                    translateY: [
+                    ]),
+                    translateY: animate.keyframes([
                         { value: -100, duration: 500 },
                         { value: 100, duration: 500, delay: 1000 },
                         { value: 0, duration: 500, delay: 1000 }
-                    ],
-                    scaleX: [
+                    ]),
+                    scaleX: animate.keyframes([
                         { value: 4, duration: 100, delay: 500, easing: 'easeOutExpo' },
                         { value: 1, duration: 900 },
                         { value: 4, duration: 100, delay: 500, easing: 'easeOutExpo' },
                         { value: 1, duration: 900 }
-                    ],
-                    scaleY: [
-                        { value: [1.75, 1], duration: 500 },
+                    ]),
+                    scaleY: animate.keyframes([
+                        { value: animate.withFrom(1.75, 1), duration: 500 },
                         { value: 2, duration: 50, delay: 1000, easing: 'easeOutExpo' },
                         { value: 1, duration: 450 },
                         { value: 1.75, duration: 50, delay: 1000, easing: 'easeOutExpo' },
                         { value: 1, duration: 450 }
-                    ]
+                    ])
                 },
                 easing: 'linear',
                 duration: 3000,
@@ -662,12 +681,7 @@
                     backgroundColor: 'red',
                     marginLeft: animate.stagger(100),
                     marginTop: animate.stagger(100),
-                    height: [
-                        {value: 100},
-                        {value: 10},
-                        {value: 50},
-                        {value: 10}
-                    ]
+                    height: animate.keyframes([100, 10, 50, 10])
                 },
                 keyframes: [
                     {
@@ -703,7 +717,7 @@
         <div class="box">
             <div class="box-title">换别的引擎来驱动动画</div>
 
-            <div style="height: 200px; padding-translateY: 200px">
+            <div style="height: 200px;">
                 <div class="square" id="aniRelegateEl1"></div>
                 <div class="square" style="background-color: green; margin-top: 10px;" id="aniRelegateEl2"></div>
             </div>
@@ -743,54 +757,6 @@
             setInterval(function() {
                 aniRelegate2.tick();
             }, 200);
-        </script>
-
-        <div class="box">
-            <div class="box-title">时间轴</div>
-
-            <input type="range" value="0" id="timeline" style="width: 500px;" />
-
-            <div class="timeline" style="padding: 200px;">
-                <div class="square"></div>
-                <div class="circle"></div>
-                <div class="triangle"></div>
-            </div>
-        </div>
-
-        <script type="text/javascript">
-            // 使用默认参数创建时间轴
-            // var timelineAnime = anime.timeline({
-            //     easing: 'linear',
-            //     duration: 750,
-            //     loop: Infinity,
-            //     autranslateYlay: false,
-            //     delay: 1000
-            // });
-            // // 增加子项
-            // timelineAnime
-            //     .add({
-            //         targets: '.timeline .el.square',
-            //         translateX: {
-            //             value: 250,
-            //             duration: 2000,
-            //             delay: 1000
-            //         },
-            //     })
-            //     .add({
-            //         targets: '.timeline .el.circle',
-            //         translateX: 250,
-            //         delay: 1000
-            //     })
-            // // .add({
-            // //     targets: '.timeline .el.triangle',
-            // //     translateX: 250,
-            // // });
-            // timeline.oninput = function() {
-            //     // console.log( keyframesAnime );
-            //     // console.log(this.value);
-            //     timelineAnime.seek(this.value / 100 * timelineAnime.duration);
-            // };
-
         </script>
     </body>
 

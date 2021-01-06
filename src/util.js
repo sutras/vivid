@@ -5,6 +5,11 @@
 |
 */
 
+export const rNum = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/;
+export const rUnit = /%|px|em|ex|ch|rem|vw|vh|vmin|vmax|pc|pt|in|cm|mm|deg|rad|turn/;
+export const rCssNumVal = new RegExp('^([+\\-*/%]=|)(' + rNum.source + ')(' + rUnit.source + '|)$', 'i');
+export const rNums = new RegExp(rNum.source, 'g');
+
 const toString = Object.prototype.toString;
 
 export function assignObjectProp( target ) {
@@ -78,7 +83,7 @@ export function isEmptyObject( target ) {
         break;
     }
 
-    return isUndefined( i );
+    return i === void 0;
 }
 
 
@@ -89,10 +94,6 @@ export function isArrayLike( target ) {
         target.length >= 0 &&
         target.length === Math.floor( target.length ) &&
         target.length < 4294967296;
-}
-
-export function isUndefined( target ) {
-    return target === void 0;
 }
 
 export function isSvg( target ) {

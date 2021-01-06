@@ -5,13 +5,12 @@
 |
 */
 const Map = window.Map && window.Map.prototype.forEach ? window.Map : (function() {
-    return class {
-        constructor() {
-            this.keys = [];
-            this.values = [];
-            this.size = 0;
-        }
-
+    function Map() {
+        this.keys = [];
+        this.values = [];
+        this.size = 0;
+    }
+    Map.prototype = {
         set( key, value ) {
             let i;
 
@@ -21,21 +20,21 @@ const Map = window.Map && window.Map.prototype.forEach ? window.Map : (function(
                 return this.values.push( value );
             }
             this.values[i] = value;
-        }
+        },
 
         get( key ) {
             return this.values[ this.keys.indexOf( key ) ];
-        }
+        },
 
         has( key ) {
             return this.keys.indexOf( key ) !== -1;
-        }
+        },
 
         forEach( fn ) {
             for ( let i = 0; i < this.size; i++ ) {
                 fn( this.values[i], this.keys[i], this );
             }
-        }
+        },
 
         'delete'( key ) {
             let i;
@@ -47,7 +46,8 @@ const Map = window.Map && window.Map.prototype.forEach ? window.Map : (function(
             }
             return false;
         }
-    }
+    };
+    return Map;
 })();
 
 export default Map;

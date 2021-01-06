@@ -118,7 +118,6 @@ function getPointAtLengthByCircle( elem, length ) {
     };
 }
 
-// 待实现
 function getPointAtLengthByEllipse( elem, length ) {
     let totalLength = getTotalLength( elem ),
         rx = getBaseVal( elem, 'rx' ),
@@ -164,8 +163,8 @@ function getPointAtLengthByRect( elem, length ) {
             }
 
             return {
-                x: x,
-                y: y
+                x,
+                y
             };
         }
         prev = sum;
@@ -238,46 +237,46 @@ function getSvgWidthOrHeight( svg, size ) {
 
 const SVG = {};
 
-function getGeometry( elem, percent ) {
-    elem = typeof elem === 'string' ? document.querySelector( elem ) : elem;
-    percent = percent || 100;
-
-    return function( property ) {
-        return {
-            el: elem,
-            property: property,
-            totalLength: getTotalLength( elem ) * ( percent / 100 ),
-            type: SVG
-        };
-    };
-}
-
-function setDashoffset( elem ) {
-    let length = getTotalLength( elem );
-    elem.setAttribute( 'stroke-dasharray', length );
-    return length;
-}
-
 export default {
     id: 'svg',
-    install: function( animate ) {
-        animate.geometry = getGeometry;
-        animate.setDashoffset = setDashoffset;
-    },
-    init: function( tween ) {
-        let data = tween.pluginData,
-            between = tween.between[0],
-            to = between.to;
+    priority: 60,
+    install( animate, SPECIAL_VALUE ) {
+        animate.geometry = function( elem, percent ) {
+            elem = typeof elem === 'string' ? document.querySelector( elem ) : elem;
+            percent = percent || 100;
 
-        if ( to && to.type === SVG ) {
-            between.from = 0;
-            data.svg = {
-                geometry: to
+            return function( property ) {
+                return {
+                    el: elem,
+                    property,
+                    totalLength: getTotalLength( elem ) * ( percent / 100 ),
+                    sign: SPECIAL_VALUE,
+                    type: SVG
+                };
             };
-            between.to = to.totalLength;
-        }
+        };
+        animate.setDashoffset = function( elem ) {
+            let length = getTotalLength( elem );
+            elem.setAttribute( 'stroke-dasharray', length );
+            return length;
+        };
     },
-    update: function( progress, tween, value ) {
+    init( tween ) {
+        let data = tween.pluginData,
+            to = tween.to;
+
+        if ( !to || to.type !== SVG ) {
+            return;
+        }
+        data.svg = {
+            geometry: to
+        };
+
+        tween.from = 0;
+        tween.to = to.totalLength;
+        tween.unit = '';
+    },
+    update( tween, value ) {
         let svgData = tween.pluginData.svg,
             p0, p1;
 
@@ -286,7 +285,6 @@ export default {
         }
 
         value = value[0];
-        tween.unit = '';
 
         p0 = getPoint(-1);
         p1 = getPoint(0);
