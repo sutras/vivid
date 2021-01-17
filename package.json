@@ -1,21 +1,21 @@
 {
-  "name": "animate",
+  "name": "vivid",
   "version": "0.5.0",
-  "description": "动画",
+  "description": "动画库",
   "main": "src/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sutras/animate.git"
+    "url": "git+https://github.com/sutras/vivid.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/sutras/animate/issues"
+    "url": "https://github.com/sutras/vivid/issues"
   },
-  "homepage": "https://github.com/sutras/animate#readme",
+  "homepage": "https://github.com/sutras/vivid#readme",
   "dependencies": {},
   "devDependencies": {
     "@babel/core": "^7.12.10",

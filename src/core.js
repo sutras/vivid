@@ -556,11 +556,11 @@ function createAnimation( tweens ) {
 |-------------------------------------------------------------------------------
 |
 */
-function animate( configuration ) {
+function vivid( configuration ) {
     return createTimeline( configuration );
 }
 
-animate.addEasing = function( name, handle ) {
+vivid.addEasing = function( name, handle ) {
     if ( isPlainObject( name ) ) {
         for ( let i in name ) {
             easing[i] = name[i];
@@ -570,7 +570,7 @@ animate.addEasing = function( name, handle ) {
     }
 };
 
-animate.withFrom = function( from, to ) {
+vivid.withFrom = function( from, to ) {
     return {
         from,
         to,
@@ -580,20 +580,20 @@ animate.withFrom = function( from, to ) {
 };
 
 // 属性关键帧
-animate.keyframes = function( keyframes ) {
+vivid.keyframes = function( keyframes ) {
     return {
         type: KEYFRAMES,
         keyframes
     };
 };
 
-animate.stagger = stagger;
-animate.engine = engine;
-animate.random = random;
-animate.Set = Set;
-animate.Map = Map;
+vivid.stagger = stagger;
+vivid.engine = engine;
+vivid.random = random;
+vivid.Set = Set;
+vivid.Map = Map;
 
-animate.use = function( plugin ) {
+vivid.use = function( plugin ) {
     let priority, i, l, id;
 
     if ( !plugin || !( id = plugin.id ) || ids[ id ] ) {
@@ -612,8 +612,8 @@ animate.use = function( plugin ) {
     ids[ id ] = true;
 
     if ( isFunction( plugin.install ) ) {
-        plugin.install( animate, SPECIAL_VALUE );
+        plugin.install( vivid, SPECIAL_VALUE );
     }
 };
 
-export default animate;
+export default vivid;

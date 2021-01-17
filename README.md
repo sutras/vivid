@@ -1,4 +1,4 @@
-# animate
+# vivid
 
 动画引擎，实现一定时间内对象两属性值间的变化效果。
 
@@ -7,9 +7,9 @@
 ``` html
 <div id="box"></div>
 
-<script type="text/javascript" src="animate.js"></script>
+<script type="text/javascript" src="vivid.js"></script>
 <script type="text/javascript">
-    var ani = animate({
+    var ani = vivid({
         properties: {
             opacity: 0
         },
@@ -24,7 +24,7 @@
 ## 选项参数
 
 ``` js
-animate({
+vivid({
     // {Object} 目标对象或目标对象的样式对象的属性；可选：css数值类型或颜色值的属性、transform类属性和值为数值类型的任意对象的属性。
     properties: null,
 
@@ -110,7 +110,7 @@ animate({
 例子：
 
 ``` js
-animate({
+vivid({
     properties: {
         translateX: 100
         translateY: 100
@@ -123,10 +123,10 @@ animate({
 ### 属性值的类型
 - String：'100'、'+=100'、'50%'、'-=50px'、'字符串里包含数值即可：来个整数50来个负数-50再来个小数3.14'
 - Number：3.14、50、-60
-- animate.withFrom(<起始值>, <结束值>)。
+- vivid.withFrom(<起始值>, <结束值>)。
 - Array，数组的元素一般为数值；一般情况下需要指定起始值，否则起始值数组元素设置0；每一帧返回的值为变化后的数组。
 - Object，用来设置每个属性单独的动画效果，需包含一个value属性表示当前属性值，其他属性可选如下：
-- animate.keyframes([...<接受上面的任意类型>])，属性关键帧，具体使用可参看下面“属性关键帧”。
+- vivid.keyframes([...<接受上面的任意类型>])，属性关键帧，具体使用可参看下面“属性关键帧”。
 
 ``` js
 // tweenSetting
@@ -145,24 +145,24 @@ animate({
 默认每一个值的duration为总duration除于关键帧数，当然也可以单独设置duration。
 
 ``` js
-animate({
+vivid({
     properties: {
-        translateX: animate.keyframes([
+        translateX: vivid.keyframes([
             { value: 250, duration: 1000, delay: 500 },
             { value: 0, duration: 1000, delay: 500 }
         ]),
-        translateY: animate.keyframes([
+        translateY: vivid.keyframes([
             { value: -100, duration: 500 },
             { value: 100, duration: 500, delay: 1000 },
             { value: 0, duration: 500, delay: 1000 }
         ]),
-        scaleX: animate.keyframes([
+        scaleX: vivid.keyframes([
             { value: 4, duration: 100, delay: 500, easing: 'easeOutExpo' },
             { value: 1, duration: 900 },
             { value: 4, duration: 100, delay: 500, easing: 'easeOutExpo' },
             { value: 1, duration: 900 }
         ]),
-        scaleY: animate.keyframes([
+        scaleY: vivid.keyframes([
             { value: [1.75, 1], duration: 500 },
             { value: 2, duration: 50, delay: 1000, easing: 'easeOutExpo' },
             { value: 1, duration: 450 },
@@ -182,7 +182,7 @@ animate({
 keyframes和properties也可以一起使用。
 
 ``` js
-animate({
+vivid({
     keyframes: [
         {
             translateY: -100,
@@ -200,52 +200,52 @@ animate({
 
 ## 实例方法
 
-### animate#finish()
+### vivid#finish()
 立即完成当前动画（只能完成一次动画；loop配置项可以设置多次动画，甚至无限次）。
 
-### animate#getPosition()
+### vivid#getPosition()
 返回动画当前已播放时长的毫秒数。
 
-### animate#getDuration()
+### vivid#getDuration()
 返回动画总时长。
 
-### animate#getProgress()
+### vivid#getProgress()
 返回动画当前播放的进度。
 
-### animate#pause()
+### vivid#pause()
 暂停当前动画。
 
-### animate#play()
+### vivid#play()
 继续播放动画（如果动画在complete状态下调用play，相当于调用restart）。
 
-### animate#restart()
+### vivid#restart()
 重新播放动画。
 
-### animate#seek( duration )
+### vivid#seek( duration )
 设置动画播放到指定时间。
 
-### animate#tick()
-在设置delegate选项参数为true基础上，在别的引擎中调用animate#tick()方法来驱使动画运行。
+### vivid#tick()
+在设置delegate选项参数为true基础上，在别的引擎中调用vivid#tick()方法来驱使动画运行。
 
 
 ## 辅助函数
 
-### animate.withFrom( from: any, to: any )
+### vivid.withFrom( from: any, to: any )
 带起始值的属性值。
 
-### animate.keyframes( keyframes: any[] )
+### vivid.keyframes( keyframes: any[] )
 用于属性关键帧。
 
-### animate.random( min: number, max: number ): number
+### vivid.random( min: number, max: number ): number
 返回一个随机数。
 
-### animate.setDashoffset( elem: SVGGeometryElement ): number
+### vivid.setDashoffset( elem: SVGGeometryElement ): number
 用于SVG的画线动画。设置SVGGeometryElement元素stroke-dasharray为SVGGeometryElement#getTotalLength并返回。例如：
 
 ``` js
-animate({
+vivid({
     properties: {
-        strokeDashoffset: [animate.setDashoffset, 0]
+        strokeDashoffset: [vivid.setDashoffset, 0]
     },
     targets: 'svg path',
     duration: 3000,
@@ -255,13 +255,13 @@ animate({
 });
 ```
 
-### animate.geometry( target: SVGGeometryElement | string, percent?: number = 100 ): function
+### vivid.geometry( target: SVGGeometryElement | string, percent?: number = 100 ): function
 用于路径动画。geometry函数返回一个函数，后者可接受一个字符串参数{x|y|angle}进行调用并返回一个对象，
 此对象包含了一个标识属性类型的属性便于程序内部进行指定的处理。例如：
 
 ``` js
-var geometry = animate.geometry('svg path');
-animate({
+var geometry = vivid.geometry('svg path');
+vivid({
     targets: '#el',
     properties: {
         translateX: geometry('x'),
@@ -275,11 +275,11 @@ animate({
 });
 ```
 
-### animate.addEasing( object: Object )
-### animate.addEasing( name: string, handle: Function )
+### vivid.addEasing( object: Object )
+### vivid.addEasing( name: string, handle: Function )
 如果内置的缓动公式不合适，也可以导入外部的缓动公式。
 
-### animate.stagger( val: Array | number, options: Object ): Function
+### vivid.stagger( val: Array | number, options: Object ): Function
 交错动画。
 ``` js
 val: Number  // 设置交错值
@@ -306,36 +306,36 @@ options = {
 };
 ```
 
-### animate.getPrefixedCssProp( property: string ): null | string
+### vivid.getPrefixedCssProp( property: string ): null | string
 接受一个元素样式对象的属性名，返回一个兼容当前浏览器的可能带有前缀的属性名；
 不兼容则返回null。
 
-### animate.css( elem: Element, prop: string )
+### vivid.css( elem: Element, prop: string )
 获取元素样式值。
 
-### animate.css( elem: Element, prop: string, value: number | string )
+### vivid.css( elem: Element, prop: string, value: number | string )
 设置元素样式值。
 
-### animate.css( elem: Element, object: Object )
+### vivid.css( elem: Element, object: Object )
 批量设置元素样式。
 
-### animate.Map()
+### vivid.Map()
 animate使用Map来提升性能，并对不支持Map的浏览器进行简单的实现。
 
-### animate.Set()
+### vivid.Set()
 animate使用Set来提升性能，并对不支持Set的浏览器进行简单的实现。
 
 
 ## engine
 engine对象拥有两个对外的方法：add、remove，两方法都接受一个函数作为参数；
-engine是内部使用的引擎，也可以使用animate.engine来对外访问，一般用于展示FPS。例如：
+engine是内部使用的引擎，也可以使用vivid.engine来对外访问，一般用于展示FPS。例如：
 
 ``` js
 (function() {
     var fpsBox = document.getElementById('fpsBox');
     var prevFrameTime = Date.now();
     var fps = 0;
-    animate.engine.add(function() {
+    vivid.engine.add(function() {
         var currTime = Date.now();
         fps = ~~( 1000 / ( currTime - prevFrameTime ) );
         prevFrameTime = currTime;

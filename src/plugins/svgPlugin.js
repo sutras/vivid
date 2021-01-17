@@ -240,8 +240,8 @@ const SVG = {};
 export default {
     id: 'svg',
     priority: 60,
-    install( animate, SPECIAL_VALUE ) {
-        animate.geometry = function( elem, percent ) {
+    install( vivid, SPECIAL_VALUE ) {
+        vivid.geometry = function( elem, percent ) {
             elem = typeof elem === 'string' ? document.querySelector( elem ) : elem;
             percent = percent || 100;
 
@@ -255,7 +255,7 @@ export default {
                 };
             };
         };
-        animate.setDashoffset = function( elem ) {
+        vivid.setDashoffset = function( elem ) {
             let length = getTotalLength( elem );
             elem.setAttribute( 'stroke-dasharray', length );
             return length;

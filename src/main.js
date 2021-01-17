@@ -1,4 +1,4 @@
-import animate from './core';
+import vivid from './core';
 
 import updateGuardPlugin from './plugins/updateGuardPlugin';
 import cssPlugin from './plugins/cssPlugin';
@@ -9,12 +9,12 @@ import multiPlugin from './plugins/multiPlugin';
 import initGuardPlugin from './plugins/initGuardPlugin';
 
 
-animate.use( updateGuardPlugin );
-animate.use( cssPlugin );
-animate.use( colorPlugin );
-animate.use( relativePlugin );
-animate.use( svgPlugin );
-animate.use( multiPlugin );
-animate.use( initGuardPlugin );
+vivid.use( updateGuardPlugin );
+vivid.use( cssPlugin );
+vivid.use( colorPlugin );
+vivid.use( relativePlugin );
+vivid.use( svgPlugin );
+vivid.use( multiPlugin );
+vivid.use( initGuardPlugin );
 
-export default animate;
+export default vivid;

@@ -197,9 +197,9 @@ function isTransform( prop ) {
 export default {
     id: 'css',
     priority: 90,
-    install( animate ) {
-        animate.css = css;
-        animate.getPrefixedCssProp = getPrefixedCssProp;
+    install( vivid ) {
+        vivid.css = css;
+        vivid.getPrefixedCssProp = getPrefixedCssProp;
     },
     init( tween ) {
         let data = tween.pluginData,
