@@ -83,6 +83,8 @@ function setStyleIgnoreUnit( elem, prop, val ) {
 }
 
 function css( elem, prop, value ) {
+    let i;
+    
     if ( !elem || !prop ) {
         return;
     }
