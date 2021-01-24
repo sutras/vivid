@@ -11,13 +11,13 @@ const cssProps = {};
 const prefixes = ['', 'webkit', 'Moz', 'O', 'ms'];
 const html = document.documentElement;
 
-const validTransforms = arrayToObject(['translateX', 'translateY', 'translateZ', 'rotate', 'rotateX',
-    'rotateY', 'rotateZ','scale', 'scaleX', 'scaleY', 'scaleZ', 'skew', 'skewX', 'skewY', 'perspective']);
+const transformValues = ['translateX', 'translateY', 'translateZ', 'rotate', 'rotateX', 'rotateY',
+    'rotateZ','scale', 'scaleX', 'scaleY', 'scaleZ', 'skew', 'skewX', 'skewY', 'perspective'];
+const transformValuesMap = arrayToObject( transformValues );
 
 const optionalUnitProperties = arrayToObject(['columnCount', 'fillOpacity', 'fontSizeAdjust', 'fontWeight',
-    'lineHeight', 'opacity', 'orphans', 'widows', 'zIndex', 'zoom', 'rotate', 'rotateX', 'rotateY', 'rotateZ',
-    'scale', 'scaleX', 'scaleY', 'scaleZ', 'order', 'flexGrow', 'flexShrink', 'scrollLeft', 'scrollTop',
-    'strokeDashoffset', 'strokeDasharray']);
+    'lineHeight', 'opacity', 'orphans', 'widows', 'zIndex', 'zoom', 'scale', 'scaleX', 'scaleY', 'scaleZ',
+    'order', 'flexGrow', 'flexShrink', 'scrollLeft', 'scrollTop', 'strokeDashoffset', 'strokeDasharray']);
 
 const cssTypeWhitelist = arrayToObject(['opacity']);
 
@@ -48,6 +48,49 @@ function camalCase( target ) {
                  .replace(/^./, m => m.toLowerCase());
 }
 
+function getPrefixedCssProp( name, host ) {
+    let i, l,
+        prefix,
+        fitName;
+
+    if ( cssProps[ name ] ) {
+        return cssProps[ name ];
+    }
+
+    host = host || html.style;
+
+    for ( i = 0, l = prefixes.length; i < l; i++ ) {
+        prefix = prefixes[ i ];
+        fitName = prefix ? prefix + pascalCase( name ) : camalCase( name );
+        if ( fitName in host ) {
+            return ( cssProps[ name ] = fitName );
+        }
+    }
+    return null;
+}
+
+function combinedWithUnit( prop, val ) {
+    return !isNaN( Number( val ) ) && !optionalUnitProperties[prop] ? val + 'px' : val;
+}
+
+function getStyle( elem, prop ) {
+    return ( window.getComputedStyle ? window.getComputedStyle( elem ) : elem.currentStyle )[ getPrefixedCssProp( prop ) ];
+}
+
+function setStyle( elem, prop, val ) {
+    elem.style[ getPrefixedCssProp( prop ) ] = combinedWithUnit( prop, val );
+}
+
+function setStyleIgnoreUnit( elem, prop, val ) {
+    elem.style[ getPrefixedCssProp( prop ) ] = val;
+}
+
+function setStyleFromTransformMap( elem, map ) {
+    let value = '';
+    map.forEach(( val, key ) => value += key + '(' + val + ') ');
+    setStyleIgnoreUnit( elem, 'transform', value );
+}
+
 const cssHooks = {
     _default: {
         get( elem, prop ) {
@@ -70,17 +113,18 @@ const cssHooks = {
     };
 });
 
-function getStyle( elem, prop ) {
-    return ( window.getComputedStyle ? window.getComputedStyle( elem ) : elem.currentStyle )[ getPrefixedCssProp( prop ) ];
-}
-
-function setStyle( elem, prop, val ) {
-    elem.style[ getPrefixedCssProp( prop ) ] = typeof val === 'number' && !optionalUnitProperties[prop] ? val + 'px' : val;
-}
-
-function setStyleIgnoreUnit( elem, prop, val ) {
-    elem.style[ getPrefixedCssProp( prop ) ] = val;
-}
+transformValues.forEach(item => {
+    cssHooks[ item ] = {
+        get( elem, prop ) {
+            return getTransformValuesMap( elem ).get( prop );
+        },
+        set( elem, prop, value ) {
+            const transformValuesMap = getTransformValuesMap( elem );
+            transformValuesMap.set( prop, combinedWithUnit( prop, value ) );
+            setStyleFromTransformMap( elem, transformValuesMap );
+        }
+    };
+});
 
 function css( elem, prop, value ) {
     let i;
@@ -100,27 +144,6 @@ function css( elem, prop, value ) {
     ( cssHooks[prop] && cssHooks[prop].set || cssHooks._default.set )( elem, prop, value );
 }
 
-function getPrefixedCssProp( name, host ) {
-    let i, l,
-        prefix,
-        fitName;
-
-    if ( cssProps[ name ] ) {
-        return cssProps[ name ];
-    }
-
-    host = host || html.style;
-
-    for ( i = 0, l = prefixes.length; i < l; i++ ) {
-        prefix = prefixes[ i ];
-        fitName = prefix ? prefix + pascalCase( name ) : camalCase( name );
-        if ( fitName in host ) {
-            return ( cssProps[ name ] = fitName );
-        }
-    }
-    return null;
-}
-
 function getDefaultUnit( prop ) {
     if ( /rotate|skew/.test( prop ) ) {
         return 'deg';
@@ -131,8 +154,7 @@ function getDefaultUnit( prop ) {
     return 'px';
 }
 
-
-function getTransforms( target ) {
+function getTransformValuesMap( target ) {
     let str,
         reg,
         m,
@@ -182,7 +204,7 @@ function getCSSOriginalValue( target, prop, unit ) {
 }
 
 function getTransformOriginalValue( target, prop, unit ) {
-    let value = getTransforms( target ).get( prop ) ||
+    let value = getTransformValuesMap( target ).get( prop ) ||
             (/scale/.test(prop) ? 1 : 0 + getDefaultUnit( prop ));
 
     return unit ? convertPxToUnit( target, value, unit ) : value;
@@ -193,7 +215,7 @@ function getOriginalValue( target, prop, unit, isTransform ) {
 }
 
 function isTransform( prop ) {
-    return !!validTransforms[ prop ];
+    return !!transformValuesMap[ prop ];
 }
 
 export default {
@@ -219,7 +241,7 @@ export default {
             cssData.isTransform = true;
             if ( !tween.animatable.transforms ) {
                 tween.animatable.transforms = {
-                    map: getTransforms( target )
+                    map: getTransformValuesMap( target )
                 };
             }
         }
@@ -237,7 +259,8 @@ export default {
     },
     update( tween, value, TERMINATE ) {
         let cssData = tween.pluginData.css,
-            property;
+            property,
+            elem = tween.animatable.target;
 
         if ( !cssData ) {
             return;
@@ -251,14 +274,11 @@ export default {
         property = tween.property;
         if ( cssData.isTransform ) {
             let map = tween.animatable.transforms.map;
-
             map.set( property, value );
-
-            value = '';
-            map.forEach(( val, key ) => value += key + '(' + val + ') ');
-            property = 'transform';
+            setStyleFromTransformMap( elem, map );
+        } else {
+            setStyleIgnoreUnit( elem, property, value );
         }
-        setStyleIgnoreUnit( tween.animatable.target, property, value );
 
         return TERMINATE;
     }

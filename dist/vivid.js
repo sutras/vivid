@@ -1,5 +1,5 @@
 /**
- * @version v0.5.1
+ * @version v0.6.0
  * @link https://github.com/sutras/vivid#readme
  * @license MIT
  */
@@ -1281,8 +1281,9 @@
   var cssProps = {};
   var prefixes = ['', 'webkit', 'Moz', 'O', 'ms'];
   var html = document.documentElement;
-  var validTransforms = arrayToObject(['translateX', 'translateY', 'translateZ', 'rotate', 'rotateX', 'rotateY', 'rotateZ', 'scale', 'scaleX', 'scaleY', 'scaleZ', 'skew', 'skewX', 'skewY', 'perspective']);
-  var optionalUnitProperties = arrayToObject(['columnCount', 'fillOpacity', 'fontSizeAdjust', 'fontWeight', 'lineHeight', 'opacity', 'orphans', 'widows', 'zIndex', 'zoom', 'rotate', 'rotateX', 'rotateY', 'rotateZ', 'scale', 'scaleX', 'scaleY', 'scaleZ', 'order', 'flexGrow', 'flexShrink', 'scrollLeft', 'scrollTop', 'strokeDashoffset', 'strokeDasharray']);
+  var transformValues = ['translateX', 'translateY', 'translateZ', 'rotate', 'rotateX', 'rotateY', 'rotateZ', 'scale', 'scaleX', 'scaleY', 'scaleZ', 'skew', 'skewX', 'skewY', 'perspective'];
+  var transformValuesMap = arrayToObject(transformValues);
+  var optionalUnitProperties = arrayToObject(['columnCount', 'fillOpacity', 'fontSizeAdjust', 'fontWeight', 'lineHeight', 'opacity', 'orphans', 'widows', 'zIndex', 'zoom', 'scale', 'scaleX', 'scaleY', 'scaleZ', 'order', 'flexGrow', 'flexShrink', 'scrollLeft', 'scrollTop', 'strokeDashoffset', 'strokeDasharray']);
   var cssTypeWhitelist = arrayToObject(['opacity']);
 
   function arrayToObject(array, val) {
@@ -1320,6 +1321,51 @@
     });
   }
 
+  function getPrefixedCssProp(name, host) {
+    var i, l, prefix, fitName;
+
+    if (cssProps[name]) {
+      return cssProps[name];
+    }
+
+    host = host || html.style;
+
+    for (i = 0, l = prefixes.length; i < l; i++) {
+      prefix = prefixes[i];
+      fitName = prefix ? prefix + pascalCase(name) : camalCase(name);
+
+      if (fitName in host) {
+        return cssProps[name] = fitName;
+      }
+    }
+
+    return null;
+  }
+
+  function combinedWithUnit(prop, val) {
+    return !isNaN(Number(val)) && !optionalUnitProperties[prop] ? val + 'px' : val;
+  }
+
+  function getStyle(elem, prop) {
+    return (window.getComputedStyle ? window.getComputedStyle(elem) : elem.currentStyle)[getPrefixedCssProp(prop)];
+  }
+
+  function setStyle(elem, prop, val) {
+    elem.style[getPrefixedCssProp(prop)] = combinedWithUnit(prop, val);
+  }
+
+  function setStyleIgnoreUnit(elem, prop, val) {
+    elem.style[getPrefixedCssProp(prop)] = val;
+  }
+
+  function setStyleFromTransformMap(elem, map) {
+    var value = '';
+    map.forEach(function (val, key) {
+      return value += key + '(' + val + ') ';
+    });
+    setStyleIgnoreUnit(elem, 'transform', value);
+  }
+
   var cssHooks = {
     _default: {
       get: function get(elem, prop) {
@@ -1340,18 +1386,18 @@
       }
     };
   });
-
-  function getStyle(elem, prop) {
-    return (window.getComputedStyle ? window.getComputedStyle(elem) : elem.currentStyle)[getPrefixedCssProp(prop)];
-  }
-
-  function setStyle(elem, prop, val) {
-    elem.style[getPrefixedCssProp(prop)] = typeof val === 'number' && !optionalUnitProperties[prop] ? val + 'px' : val;
-  }
-
-  function setStyleIgnoreUnit(elem, prop, val) {
-    elem.style[getPrefixedCssProp(prop)] = val;
-  }
+  transformValues.forEach(function (item) {
+    cssHooks[item] = {
+      get: function get(elem, prop) {
+        return getTransformValuesMap(elem).get(prop);
+      },
+      set: function set(elem, prop, value) {
+        var transformValuesMap = getTransformValuesMap(elem);
+        transformValuesMap.set(prop, combinedWithUnit(prop, value));
+        setStyleFromTransformMap(elem, transformValuesMap);
+      }
+    };
+  });
 
   function css(elem, prop, value) {
     var i;
@@ -1375,27 +1421,6 @@
     (cssHooks[prop] && cssHooks[prop].set || cssHooks._default.set)(elem, prop, value);
   }
 
-  function getPrefixedCssProp(name, host) {
-    var i, l, prefix, fitName;
-
-    if (cssProps[name]) {
-      return cssProps[name];
-    }
-
-    host = host || html.style;
-
-    for (i = 0, l = prefixes.length; i < l; i++) {
-      prefix = prefixes[i];
-      fitName = prefix ? prefix + pascalCase(name) : camalCase(name);
-
-      if (fitName in host) {
-        return cssProps[name] = fitName;
-      }
-    }
-
-    return null;
-  }
-
   function getDefaultUnit(prop) {
     if (/rotate|skew/.test(prop)) {
       return 'deg';
@@ -1408,7 +1433,7 @@
     return 'px';
   }
 
-  function getTransforms(target) {
+  function getTransformValuesMap(target) {
     var str, reg, m, transforms;
 
     if (!isElement(target)) {
@@ -1457,7 +1482,7 @@
   }
 
   function getTransformOriginalValue(target, prop, unit) {
-    var value = getTransforms(target).get(prop) || (/scale/.test(prop) ? 1 : 0 + getDefaultUnit(prop));
+    var value = getTransformValuesMap(target).get(prop) || (/scale/.test(prop) ? 1 : 0 + getDefaultUnit(prop));
     return unit ? convertPxToUnit(target, value, unit) : value;
   }
 
@@ -1466,7 +1491,7 @@
   }
 
   function isTransform(prop) {
-    return !!validTransforms[prop];
+    return !!transformValuesMap[prop];
   }
 
   var cssPlugin = {
@@ -1493,7 +1518,7 @@
 
         if (!tween.animatable.transforms) {
           tween.animatable.transforms = {
-            map: getTransforms(target)
+            map: getTransformValuesMap(target)
           };
         }
       }
@@ -1512,7 +1537,8 @@
     },
     update: function update(tween, value, TERMINATE) {
       var cssData = tween.pluginData.css,
-          property;
+          property,
+          elem = tween.animatable.target;
 
       if (!cssData) {
         return;
@@ -1528,14 +1554,11 @@
       if (cssData.isTransform) {
         var map = tween.animatable.transforms.map;
         map.set(property, value);
-        value = '';
-        map.forEach(function (val, key) {
-          return value += key + '(' + val + ') ';
-        });
-        property = 'transform';
+        setStyleFromTransformMap(elem, map);
+      } else {
+        setStyleIgnoreUnit(elem, property, value);
       }
 
-      setStyleIgnoreUnit(tween.animatable.target, property, value);
       return TERMINATE;
     }
   };
