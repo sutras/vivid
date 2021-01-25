@@ -156,13 +156,11 @@
                 // 路径动画
                 [].slice.call(document.querySelectorAll('#drawlineAndPath svg *')).forEach(function(el) {
                     var geometry = vivid.geometry(el);
-                    vivid({
-                        targets: '#' + el.nodeName.toLocaleString(),
-                        properties: {
-                            left: geometry('x'),
-                            top: geometry('y'),
-                            rotate: geometry('angle')
-                        },
+                    vivid('#' + el.nodeName.toLocaleString(), {
+                        left: geometry('x'),
+                        top: geometry('y'),
+                        rotate: geometry('angle')
+                    }, {
                         duration: 3000,
                         easing: 'linear',
                         loop: true,
@@ -172,11 +170,9 @@
                 });
 
                 // 画线动画
-                vivid({
-                    targets: 'svg *',
-                    properties: {
-                        strokeDashoffset: vivid.withFrom( vivid.setDashoffset, 0 )
-                    },
+                vivid('svg *', {
+                    strokeDashoffset: vivid.withFrom( vivid.setDashoffset, 0 )
+                }, {
                     duration: 3000,
                     easing: 'linear',
                     loop: true,
@@ -208,28 +204,26 @@
                 var polymorph = document.querySelector('#variant .polymorph');
                 var ProxyObj = {};
 
-                vivid({
-                    targets: ProxyObj,
-                    properties: {
-                        points: vivid.keyframes([
-                            vivid.withFrom(
-                                '70 24 119.574 60.369 100.145 117.631 50.855 101.631 3.426 54.369',
-                                '70 41 118.574 59.369 111.145 132.631 60.855 84.631 20.426 60.369'
-                            ),
-                            '70 6 119.574 60.369 100.145 117.631 39.855 117.631 55.426 68.369',
-                            '70 57 136.574 54.369 89.145 100.631 28.855 132.631 38.426 64.369',
-                            '70 24 119.574 60.369 100.145 117.631 50.855 101.631 3.426 54.369'
-                        ])
-                        // points: vivid.keyframes([
-                        //     vivid.withFrom(
-                        //         [70, 24, 119.574, 60.369, 100.145, 117.631, 50.855, 101.631, 3.426, 54.369],
-                        //         [70, 41, 118.574, 59.369, 111.145, 132.631, 60.855, 84.631, 20.426, 60.369]
-                        //     ),
-                        //     [70, 6, 119.574, 60.369, 100.145, 117.631, 39.855, 117.631, 55.426, 68.369],
-                        //     [70, 57, 136.574, 54.369, 89.145, 100.631, 28.855, 132.631, 38.426, 64.369],
-                        //     [70, 24, 119.574, 60.369, 100.145, 117.631, 50.855, 101.631, 3.426, 54.369]
-                        // ])
-                    },
+                vivid(ProxyObj, {
+                    points: vivid.keyframes([
+                        vivid.withFrom(
+                            '70 24 119.574 60.369 100.145 117.631 50.855 101.631 3.426 54.369',
+                            '70 41 118.574 59.369 111.145 132.631 60.855 84.631 20.426 60.369'
+                        ),
+                        '70 6 119.574 60.369 100.145 117.631 39.855 117.631 55.426 68.369',
+                        '70 57 136.574 54.369 89.145 100.631 28.855 132.631 38.426 64.369',
+                        '70 24 119.574 60.369 100.145 117.631 50.855 101.631 3.426 54.369'
+                    ])
+                    // points: vivid.keyframes([
+                    //     vivid.withFrom(
+                    //         [70, 24, 119.574, 60.369, 100.145, 117.631, 50.855, 101.631, 3.426, 54.369],
+                    //         [70, 41, 118.574, 59.369, 111.145, 132.631, 60.855, 84.631, 20.426, 60.369]
+                    //     ),
+                    //     [70, 6, 119.574, 60.369, 100.145, 117.631, 39.855, 117.631, 55.426, 68.369],
+                    //     [70, 57, 136.574, 54.369, 89.145, 100.631, 28.855, 132.631, 38.426, 64.369],
+                    //     [70, 24, 119.574, 60.369, 100.145, 117.631, 50.855, 101.631, 3.426, 54.369]
+                    // ])
+                }, {
                     duration: 1532,
                     round: 10,
                     loop: true,
@@ -247,11 +241,9 @@
             <input type="text" id="age" />
         </div>
         <script type="text/javascript">
-            vivid({
-                targets: document.getElementById('age'),
-                properties: {
-                    value: vivid.withFrom('1000', '2000%')
-                },
+            vivid('#age', {
+                value: vivid.withFrom('1000', '2000%')
+            }, {
                 duration: 1532,
                 round: 10,
                 loop: true,
@@ -271,19 +263,17 @@
             </div>
         </div>
         <script type="text/javascript">
-            vivid({
-                targets: '#relativeBox .square',
-                properties: {
-                    translateX: function( target, id, total ) {
-                        return [
-                                '+=100px',
-                                '-=50px',
-                                vivid.withFrom(10, '*=300%'),
-                                vivid.withFrom(200, '/=2px'),
-                                vivid.withFrom(100, '%=50px')
-                            ][ id ];
-                    }
-                },
+            vivid('#relativeBox .square', {
+                translateX: function( target, id, total ) {
+                    return [
+                        '+=100px',
+                        '-=50px',
+                        vivid.withFrom(10, '*=300%'),
+                        vivid.withFrom(200, '/=2px'),
+                        vivid.withFrom(100, '%=50px')
+                    ][ id ];
+                }
+            }, {
                 loop: true,
                 duration: 1000,
                 direction: 'alternate'
@@ -296,12 +286,10 @@
             <div class="square" style="width: 100px; padding: 10px;" id="colorEl"><b>颜色</b></div>
         </div>
         <script type="text/javascript">
-            vivid({
-                targets: document.getElementById('colorEl'),
-                properties: {
-                    backgroundColor: 'green',
-                    color: 'rgba(0,0,0,1)'
-                },
+            vivid('#colorEl', {
+                backgroundColor: 'green',
+                color: 'rgba(0,0,0,1)'
+            }, {
                 duration: 1000,
                 loop: true,
                 direction: 'alternate'
@@ -341,12 +329,10 @@
                     };
                 }
 
-                var controlAnima = vivid({
-                    targets: document.getElementById('controlEl'),
-                    properties: {
-                        translateX: 200,
-                        translateY: 100
-                    },
+                var controlAnima = vivid('#controlEl', {
+                    translateX: 200,
+                    translateY: 100
+                }, {
                     duration: 4000,
                     // direction: 'alternate'
                 });
@@ -368,11 +354,9 @@
         </div>
         <script type="text/javascript">
             (function() {
-                var basicStaggerAnima = vivid({
-                    targets: document.getElementById('basicStagger').getElementsByTagName('span'),
-                    properties: {
-                        translateX: 200
-                    },
+                var basicStaggerAnima = vivid('#basicStagger span', {
+                    translateX: 200
+                }, {
                     duration: 1000,
                     loop: true,
                     delay: vivid.stagger(500),
@@ -394,11 +378,9 @@
         </div>
         <script type="text/javascript">
             (function() {
-                var basicStaggerAnima = vivid({
-                    targets: document.getElementById('hasStartValueStagger').getElementsByTagName('span'),
-                    properties: {
-                        translateX: 200
-                    },
+                var basicStaggerAnima = vivid('#hasStartValueStagger span', {
+                    translateX: 200
+                }, {
                     duration: 1000,
                     loop: true,
                     delay: vivid.stagger(500, { start: 500 }),
@@ -420,12 +402,10 @@
         </div>
         <script type="text/javascript">
             (function() {
-                var basicStaggerAnima = vivid({
-                    targets: document.getElementById('rangeValueStagger').getElementsByTagName('span'),
-                    properties: {
-                        translateX: vivid.stagger([50, 300]),
-                        rotate: vivid.stagger([0, 360])
-                    },
+                var basicStaggerAnima = vivid('#rangeValueStagger span', {
+                    translateX: vivid.stagger([50, 300]),
+                    rotate: vivid.stagger([0, 360])
+                }, {
                     duration: 1000,
                     loop: true,
                     direction: 'alternate'
@@ -447,11 +427,9 @@
         </div>
         <script type="text/javascript">
             (function() {
-                var basicStaggerAnima = vivid({
-                    targets: document.getElementById('setPlacementStagger').getElementsByTagName('span'),
-                    properties: {
+                var basicStaggerAnima = vivid('#setPlacementStagger span', {
                         translateX: 200
-                    },
+                    }, {
                     duration: 1000,
                     loop: true,
                     delay: vivid.stagger(100, { from: 'center' }),
@@ -474,11 +452,9 @@
         </div>
         <script type="text/javascript">
             (function() {
-                var basicStaggerAnima = vivid({
-                    targets: document.getElementById('setDirectionStagger').getElementsByTagName('span'),
-                    properties: {
-                        translateX: 200
-                    },
+                var basicStaggerAnima = vivid('#setDirectionStagger span', {
+                    translateX: 200
+                }, {
                     duration: 1000,
                     loop: true,
                     delay: vivid.stagger(100, { direction: 'reverse' }),
@@ -507,11 +483,9 @@
         </div>
         <script type="text/javascript">
             (function() {
-                var basicStaggerAnima = vivid({
-                    targets: document.getElementById('easingStagger').getElementsByTagName('span'),
-                    properties: {
-                        translateX: 200
-                    },
+                var basicStaggerAnima = vivid('#easingStagger span', {
+                    translateX: 200
+                }, {
                     duration: 500,
                     loop: true,
                     delay: vivid.stagger(500, { easing: 'linear' }),
@@ -545,11 +519,9 @@
                 }
                 gridStagger.appendChild(docFrag);
 
-                var basicStaggerAnima = vivid({
-                    targets: gridStagger.getElementsByTagName('span'),
-                    properties: {
-                        scale: { value: .1, easing: 'easeOutSine', duration: 500 }
-                    },
+                var basicStaggerAnima = vivid(gridStagger.getElementsByTagName('span'), {
+                    scale: { value: .1, easing: 'easeOutSine', duration: 500 }
+                }, {
                     duration: 400,
                     loop: true,
                     delay: vivid.stagger(200, {
@@ -585,16 +557,14 @@
                     line.appendChild(div);
                 }
                 axisGridStagger.appendChild(docFrag);
-                var basicStaggerAnima = vivid({
-                    targets: axisGridStagger.getElementsByTagName('span'),
-                    properties: {
-                        translateX: vivid.stagger(5, {
-                            grid: [colNum, rowNum],
-                            from: 'first',
-                            axis: 'x',
-                            easing: 'easeInQuad'
-                        })
-                    },
+                var basicStaggerAnima = vivid(axisGridStagger.getElementsByTagName('span'), {
+                    translateX: vivid.stagger(5, {
+                        grid: [colNum, rowNum],
+                        from: 'first',
+                        axis: 'x',
+                        easing: 'easeInQuad'
+                    })
+                }, {
                     duration: 1000,
                     loop: true,
                     direction: 'alternate'
@@ -614,32 +584,30 @@
         </div>
 
         <script type="text/javascript">
-            var propKeyframesAnima = vivid({
-                targets: document.getElementById('propKeyframesEl'),
-                properties: {
-                    translateX: vivid.keyframes([
-                        { value: 250, duration: 1000, delay: 500 },
-                        { value: 0, duration: 1000, delay: 500 }
-                    ]),
-                    translateY: vivid.keyframes([
-                        { value: -100, duration: 500 },
-                        { value: 100, duration: 500, delay: 1000 },
-                        { value: 0, duration: 500, delay: 1000 }
-                    ]),
-                    scaleX: vivid.keyframes([
-                        { value: 4, duration: 100, delay: 500, easing: 'easeOutExpo' },
-                        { value: 1, duration: 900 },
-                        { value: 4, duration: 100, delay: 500, easing: 'easeOutExpo' },
-                        { value: 1, duration: 900 }
-                    ]),
-                    scaleY: vivid.keyframes([
-                        { value: vivid.withFrom(1.75, 1), duration: 500 },
-                        { value: 2, duration: 50, delay: 1000, easing: 'easeOutExpo' },
-                        { value: 1, duration: 450 },
-                        { value: 1.75, duration: 50, delay: 1000, easing: 'easeOutExpo' },
-                        { value: 1, duration: 450 }
-                    ])
-                },
+            var propKeyframesAnima = vivid(document.getElementById('propKeyframesEl'), {
+                translateX: vivid.keyframes([
+                    { value: 250, duration: 1000, delay: 500 },
+                    { value: 0, duration: 1000, delay: 500 }
+                ]),
+                translateY: vivid.keyframes([
+                    { value: -100, duration: 500 },
+                    { value: 100, duration: 500, delay: 1000 },
+                    { value: 0, duration: 500, delay: 1000 }
+                ]),
+                scaleX: vivid.keyframes([
+                    { value: 4, duration: 100, delay: 500, easing: 'easeOutExpo' },
+                    { value: 1, duration: 900 },
+                    { value: 4, duration: 100, delay: 500, easing: 'easeOutExpo' },
+                    { value: 1, duration: 900 }
+                ]),
+                scaleY: vivid.keyframes([
+                    { value: vivid.withFrom(1.75, 1), duration: 500 },
+                    { value: 2, duration: 50, delay: 1000, easing: 'easeOutExpo' },
+                    { value: 1, duration: 450 },
+                    { value: 1.75, duration: 50, delay: 1000, easing: 'easeOutExpo' },
+                    { value: 1, duration: 450 }
+                ])
+            }, {
                 easing: 'linear',
                 duration: 3000,
                 loop: true,
@@ -662,37 +630,19 @@
             </div>
         </div>
         <script type="text/javascript">
-            var aniKeyframesAnima = vivid({
-                targets: document.getElementById('aniKeyframesEl'),
-                properties: {
-                    // translateY: [
-                    //     {value: -100},
-                    // ],
-                    // translateX: [
-                    //     {value: 200, duration: 400},
-                    //     {value: 50, delay: 300},
-                    //     {value: 0, delay: 300},
-                    // ],
-                    // translateZ: {
-                    //     value: 300,
-                    //     duration: 300
-                    // },
-                    // scale: [3, 1],
-                    backgroundColor: 'red',
-                    marginLeft: vivid.stagger(100),
-                    marginTop: vivid.stagger(100),
-                    height: vivid.keyframes([100, 10, 50, 10])
+            var aniKeyframesAnima = vivid('#aniKeyframesEl', [
+                {
+                    translateY: -100,
+                    scale: 2
                 },
-                keyframes: [
-                    {
-                        translateY: -100,
-                        scale: 2
-                    },
-                    {translateX: 100},
-                    {translateY: 100},
-                    {translateX: 0},
-                    {translateY: 0}
-                ],
+                {translateX: 100},
+                {
+                    translateY: 100,
+                    scale: 1
+                },
+                {translateX: 0},
+                {translateY: 0}
+            ], {
                 duration: 4000,
                 delay: 0,
                 endDelay: 0,
@@ -723,14 +673,12 @@
             </div>
         </div>
         <script type="text/javascript">
-            var aniRelegate1 = vivid({
-                targets: document.getElementById('aniRelegateEl1'),
-                keyframes: [
-                    {translateY: 100},
-                    {translateX: 200},
-                    {translateY: 0},
-                    {translateX: 0},
-                ],
+            var aniRelegate1 = vivid('#aniRelegateEl1', [
+                {translateY: 100},
+                {translateX: 200},
+                {translateY: 0},
+                {translateX: 0},
+            ], {
                 duration: 4000,
                 easing: 'linear',
                 round: 0,
@@ -738,14 +686,12 @@
                 direction: 'alternate'
             });
 
-            var aniRelegate2 = vivid({
-                targets: document.getElementById('aniRelegateEl2'),
-                keyframes: [
-                    {translateY: 100},
-                    {translateX: 200},
-                    {translateY: 0},
-                    {translateX: 0},
-                ],
+            var aniRelegate2 = vivid('#aniRelegateEl2', [
+                {translateY: 100},
+                {translateX: 200},
+                {translateY: 0},
+                {translateX: 0},
+            ], {
                 duration: 4000,
                 easing: 'linear',
                 round: 0,

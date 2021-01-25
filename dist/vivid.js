@@ -1,5 +1,5 @@
 /**
- * @version v0.6.0
+ * @version v0.7.0
  * @link https://github.com/sutras/vivid#readme
  * @license MIT
  */
@@ -738,7 +738,7 @@
   // 统一转换为 [{ value }]
 
 
-  function structureTween(value, animatable, keyframe) {
+  function structureTween(value, animatable, properties) {
     value = getFuncValue(value, animatable);
 
     if (value.type === KEYFRAMES) {
@@ -753,7 +753,7 @@
       };
     }
 
-    return keyframe ? value : [value];
+    return properties ? value : [value];
   }
 
   function normalizeTweens(animatable, tweenConfigs, property, options, beginTime, animationProperties, averageDuration) {
@@ -845,13 +845,13 @@
     };
   }
 
-  function getOneKeyframeSetting(animatable, keyframe, options, beginTime, animationProperties, averageDuration) {
+  function getOneKeyframeSetting(animatable, properties, options, beginTime, animationProperties, averageDuration) {
     var props = {},
         p,
         value;
 
-    for (p in keyframe) {
-      if ((value = keyframe[p]) == null) {
+    for (p in properties) {
+      if ((value = properties[p]) == null) {
         continue;
       }
 
@@ -866,9 +866,9 @@
         animationProperties = {},
         endTime = 0,
         averageDuration = options.duration / keyframes.length;
-    keyframes.forEach(function (keyframe) {
+    keyframes.forEach(function (properties) {
       var p;
-      oneKeyframeSetting = getOneKeyframeSetting(animatable, keyframe, options, endTime, animationProperties, averageDuration);
+      oneKeyframeSetting = getOneKeyframeSetting(animatable, properties, options, endTime, animationProperties, averageDuration);
 
       for (p in oneKeyframeSetting) {
         endTime = Math.max(endTime, oneKeyframeSetting[p].endTime);
@@ -896,15 +896,16 @@
     return animationProperties;
   }
 
-  function getAllAnimationProperties(animatable, properties, keyframes, options) {
-    return flattenKeyframesAnimationProperties([keyframes, [properties]].map(function (keyframes) {
+  function getAllAnimationProperties(animatable, keyframes, options) {
+    return flattenKeyframesAnimationProperties([keyframes].map(function (keyframes) {
       return getKeyframesAnimationProperties(animatable, keyframes, options);
     }));
   }
 
-  function getAnimations(animatables, properties, keyframes, options) {
+  function getAnimations(animatables, keyframes, options) {
+    keyframes = Array.isArray(keyframes) ? keyframes : [keyframes];
     return flattenArray(animatables.map(function (animatable) {
-      var animationProperties = getAllAnimationProperties(animatable, properties || {}, keyframes || [], options),
+      var animationProperties = getAllAnimationProperties(animatable, keyframes, options),
           p,
           animations = [];
 
@@ -946,10 +947,9 @@
     round: 0
   };
 
-  function createTimeline(configuration) {
+  function createTimeline(targets, keyframes, configuration) {
     var timelineOptions,
         tweenOptions,
-        targets,
         autoplay,
         delegate,
         loopAmount,
@@ -964,14 +964,14 @@
         position = 0;
     timelineOptions = overrideObject(copyObject(defaultTimelineSettings), configuration);
     tweenOptions = overrideObject(copyObject(defaultTweenSettings), configuration);
-    targets = parseTargets(configuration.targets);
+    targets = parseTargets(targets);
     autoplay = timelineOptions.autoplay;
     delegate = timelineOptions.delegate;
     loopAmount = timelineOptions.loop === true ? Infinity : timelineOptions.loop || 1;
     loopCount = loopAmount;
     reversed = isReverse(timelineOptions.direction);
     animatables = getAnimatables(targets);
-    animations = getAnimations(animatables, configuration.properties, configuration.keyframes, tweenOptions);
+    animations = getAnimations(animatables, keyframes || [], tweenOptions);
     duration = getAnimationsDuration(animations);
 
     if (autoplay) {
@@ -1187,8 +1187,8 @@
   */
 
 
-  function vivid(configuration) {
-    return createTimeline(configuration);
+  function vivid(targets, keyframes, configuration) {
+    return createTimeline(targets, keyframes, configuration);
   }
 
   vivid.addEasing = function (name, handle) {

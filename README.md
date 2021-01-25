@@ -9,11 +9,8 @@
 
 <script type="text/javascript" src="vivid.js"></script>
 <script type="text/javascript">
-    var ani = vivid({
-        properties: {
-            opacity: 0
-        },
-        targets: '#box'
+    var ani = vivid('#box', {
+        opacity: 0
     });
 </script>
 ```
@@ -24,19 +21,16 @@
 ## 选项参数
 
 ``` js
-vivid({
-    // {Object} 目标对象或目标对象的样式对象的属性；可选：css数值类型或颜色值的属性、transform类属性和值为数值类型的任意对象的属性。
-    properties: null,
+vivid( targets, keyframes|propperties, options|null );
 
+targets: {Object|Element|String} 要进行动画的目标对象或者元素选择器。
 
-    // {Array} 动画关键帧，每一个关键帧就是一个properties选项。
-    keyframes: [],
+properties: {Object} 目标对象或目标对象的样式对象的属性;
+            值的类型：css数值类型或颜色值的属性、transform类属性和值为数值类型的任意对象的属性。
 
+keyframes: {Array} 动画关键帧，每一个关键帧就是一个properties。
 
-    // {Object|Element|String} 要进行动画的目标对象或者元素选择器。
-    targets: null,
-
-
+options: {
     // {Boolean} 创建动画对象后是否立即开始动画
     autoplay: true,
 
@@ -110,13 +104,10 @@ vivid({
 例子：
 
 ``` js
-vivid({
-    properties: {
-        translateX: 100
-        translateY: 100
-        rotate: 45
-    },
-    targets: '#box'
+vivid('#box', {
+    translateX: 100,
+    translateY: 100,
+    rotate: 45
 });
 ```
 
@@ -145,32 +136,29 @@ vivid({
 默认每一个值的duration为总duration除于关键帧数，当然也可以单独设置duration。
 
 ``` js
-vivid({
-    properties: {
-        translateX: vivid.keyframes([
-            { value: 250, duration: 1000, delay: 500 },
-            { value: 0, duration: 1000, delay: 500 }
-        ]),
-        translateY: vivid.keyframes([
-            { value: -100, duration: 500 },
-            { value: 100, duration: 500, delay: 1000 },
-            { value: 0, duration: 500, delay: 1000 }
-        ]),
-        scaleX: vivid.keyframes([
-            { value: 4, duration: 100, delay: 500, easing: 'easeOutExpo' },
-            { value: 1, duration: 900 },
-            { value: 4, duration: 100, delay: 500, easing: 'easeOutExpo' },
-            { value: 1, duration: 900 }
-        ]),
-        scaleY: vivid.keyframes([
-            { value: [1.75, 1], duration: 500 },
-            { value: 2, duration: 50, delay: 1000, easing: 'easeOutExpo' },
-            { value: 1, duration: 450 },
-            { value: 1.75, duration: 50, delay: 1000, easing: 'easeOutExpo' },
-            { value: 1, duration: 450 }
-        ])
-    },
-    ...
+vivid('#box', {
+    translateX: vivid.keyframes([
+        { value: 250, duration: 1000, delay: 500 },
+        { value: 0, duration: 1000, delay: 500 }
+    ]),
+    translateY: vivid.keyframes([
+        { value: -100, duration: 500 },
+        { value: 100, duration: 500, delay: 1000 },
+        { value: 0, duration: 500, delay: 1000 }
+    ]),
+    scaleX: vivid.keyframes([
+        { value: 4, duration: 100, delay: 500, easing: 'easeOutExpo' },
+        { value: 1, duration: 900 },
+        { value: 4, duration: 100, delay: 500, easing: 'easeOutExpo' },
+        { value: 1, duration: 900 }
+    ]),
+    scaleY: vivid.keyframes([
+        { value: [1.75, 1], duration: 500 },
+        { value: 2, duration: 50, delay: 1000, easing: 'easeOutExpo' },
+        { value: 1, duration: 450 },
+        { value: 1.75, duration: 50, delay: 1000, easing: 'easeOutExpo' },
+        { value: 1, duration: 450 }
+    ])
 });
 ```
 
@@ -182,19 +170,16 @@ vivid({
 keyframes和properties也可以一起使用。
 
 ``` js
-vivid({
-    keyframes: [
-        {
-            translateY: -100,
-            scale: 2
-        },
-        { translateX: 100 },
-        { translateY: 100 },
-        { translateX: 0 },
-        { translateY: 0 }
-    ],
-    ...
-});
+vivid('#box', [
+    {
+        translateY: -100,
+        scale: 2
+    },
+    { translateX: 100 },
+    { translateY: 100 },
+    { translateX: 0 },
+    { translateY: 0 }
+]);
 ```
 
 
@@ -243,11 +228,9 @@ vivid({
 用于SVG的画线动画。设置SVGGeometryElement元素stroke-dasharray为SVGGeometryElement#getTotalLength并返回。例如：
 
 ``` js
-vivid({
-    properties: {
-        strokeDashoffset: [vivid.setDashoffset, 0]
-    },
-    targets: 'svg path',
+vivid('svg path', {
+    strokeDashoffset: [vivid.setDashoffset, 0]
+}, {
     duration: 3000,
     easing: 'linear',
     loop: true,
@@ -261,13 +244,11 @@ vivid({
 
 ``` js
 var geometry = vivid.geometry('svg path');
-vivid({
-    targets: '#el',
-    properties: {
-        translateX: geometry('x'),
-        translateY: geometry('y'),
-        rotate: geometry('angle'),
-    },
+vivid('#el', {
+    translateX: geometry('x'),
+    translateY: geometry('y'),
+    rotate: geometry('angle'),
+}, {
     duration: 3000,
     easing: 'linear',
     loop: true,
@@ -311,13 +292,22 @@ options = {
 不兼容则返回null。
 
 ### vivid.css( elem: Element, prop: string )
-获取元素样式值。
+获取元素样式值。vivid.css()可以获取 transform类型的属性值, 例如:
+
+``` js
+vivid.css(document.body, 'scale');
+```
 
 ### vivid.css( elem: Element, prop: string, value: number | string )
-设置元素样式值。
+设置元素样式值。vivid.css()可以设置 transform类型的属性, 例如:
+
+``` js
+vivid.css(document.body, 'translateX', 200);
+```
 
 ### vivid.css( elem: Element, object: Object )
 批量设置元素样式。
+
 
 ### vivid.Map()
 animate使用Map来提升性能，并对不支持Map的浏览器进行简单的实现。
