@@ -5,301 +5,301 @@
 |
 */
 
-function getDistance( p1, p2 ) {
-    return Math.sqrt( Math.pow( p1.x - p2.x, 2 ) + Math.pow( p1.y - p2.y, 2 ) );
+function getDistance(p1, p2) {
+  return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
 }
 
-function getBaseVal( elem, prop ) {
-    return elem[ prop ].baseVal.value;
+function getBaseVal(elem, prop) {
+  return elem[prop].baseVal.value;
 }
 
-function getRadianByLine( p1, p2 ) {
-    return Math.atan2( p2.y - p1.y, p2.x - p1.x );
+function getRadianByLine(p1, p2) {
+  return Math.atan2(p2.y - p1.y, p2.x - p1.x);
 }
 
-function getAngleByLine( p1, p2 ) {
-    return getRadianByLine( p1, p2 ) / Math.PI * 180;
+function getAngleByLine(p1, p2) {
+  return getRadianByLine(p1, p2) / Math.PI * 180;
 }
 
-function getPointAtLine( p1, p2, progress ) {
-    let radian = getRadianByLine( p1, p2 ),
-        x = Math.cos( radian ) * progress,
-        y = Math.sin( radian ) * progress;
+function getPointAtLine(p1, p2, progress) {
+  let radian = getRadianByLine(p1, p2),
+    x = Math.cos(radian) * progress,
+    y = Math.sin(radian) * progress;
 
-    return {
-        x: p1.x + x,
-        y: p1.y + y
-    };
+  return {
+    x: p1.x + x,
+    y: p1.y + y
+  };
 }
 
-function getRectTotalLength( elem ) {
-    return getBaseVal( elem, 'width' ) * 2 + getBaseVal( elem, 'height' ) * 2;
+function getRectTotalLength(elem) {
+  return getBaseVal(elem, 'width') * 2 + getBaseVal(elem, 'height') * 2;
 }
 
-function getCircleTotalLength( elem ) {
-    return getBaseVal( elem, 'r' ) * 2 * Math.PI;
+function getCircleTotalLength(elem) {
+  return getBaseVal(elem, 'r') * 2 * Math.PI;
 }
 
 // 此公式来源于：百度百科椭圆周长第十条公式（该公式发明人周钰承）
 // 通过多次计算得出，此公式获取的周长与chrome浏览器内置的公式获取的周长有一个像素左右的误差。
-function getEllipseTotalLength( elem ) {
-    let rx = getBaseVal( elem, 'rx' ),
-        ry = getBaseVal( elem, 'ry' ),
-        a = Math.max( rx, ry ),
-        b = Math.min( rx, ry ),
-        c = ( a - b ) / ( a + b ),
-        pi = Math.PI,
-        pow = Math.pow;
+function getEllipseTotalLength(elem) {
+  let rx = getBaseVal(elem, 'rx'),
+    ry = getBaseVal(elem, 'ry'),
+    a = Math.max(rx, ry),
+    b = Math.min(rx, ry),
+    c = (a - b) / (a + b),
+    pi = Math.PI,
+    pow = Math.pow;
 
-    return pi * ( a + b ) *
-        (   1 +
-            3 * c * c / ( 10 + Math.sqrt( 4 - 3 * c * c ) ) +
-            ( 4 / pi - 14 / 11 ) * pow( c, 14.233 + 13.981 * pow( c, 6.42 ) )
-        );
+  return pi * (a + b) *
+    (1 +
+      3 * c * c / (10 + Math.sqrt(4 - 3 * c * c)) +
+      (4 / pi - 14 / 11) * pow(c, 14.233 + 13.981 * pow(c, 6.42))
+    );
 }
 
-function getLineTotalLength( elem ) {
-    return getDistance({
-        x: getBaseVal( elem, 'x1' ),
-        y: getBaseVal( elem, 'y1' )
-    }, {
-        x: getBaseVal( elem, 'x2' ),
-        y: getBaseVal( elem, 'y2' )
-    });
+function getLineTotalLength(elem) {
+  return getDistance({
+    x: getBaseVal(elem, 'x1'),
+    y: getBaseVal(elem, 'y1')
+  }, {
+    x: getBaseVal(elem, 'x2'),
+    y: getBaseVal(elem, 'y2')
+  });
 }
 
-function getPolylineTotalLength( elem ) {
-    let points = elem.points,
-        i, totalLength = 0;
+function getPolylineTotalLength(elem) {
+  let points = elem.points,
+    i, totalLength = 0;
 
-    for ( i = 1; i < points.numberOfItems; i++ ) {
-        totalLength += getDistance( points.getItem(i - 1), points.getItem(i) );
+  for (i = 1; i < points.numberOfItems; i++) {
+    totalLength += getDistance(points.getItem(i - 1), points.getItem(i));
+  }
+  return totalLength;
+}
+
+function getPolygonTotalLength(elem) {
+  let points = elem.points;
+  return getPolylineTotalLength(elem) +
+    getDistance(points.getItem(0), points.getItem(points.numberOfItems - 1));
+}
+
+function getTotalLength(elem) {
+  if (elem.getTotalLength) {
+    return elem.getTotalLength();
+  }
+  switch (elem.nodeName.toLowerCase()) {
+    case 'rect':
+      return getRectTotalLength(elem);
+    case 'circle':
+      return getCircleTotalLength(elem);
+    case 'ellipse':
+      return getEllipseTotalLength(elem);
+    case 'line':
+      return getLineTotalLength(elem);
+    case 'polyline':
+      return getPolylineTotalLength(elem);
+    case 'polygon':
+      return getPolygonTotalLength(elem);
+  }
+}
+
+function getPointAtLengthByCircle(elem, length) {
+  let radius = getBaseVal(elem, 'r'),
+    cx = getBaseVal(elem, 'cx'),
+    cy = getBaseVal(elem, 'cy'),
+    radian = length / getTotalLength(elem) * 2 * Math.PI,
+    ly = Math.sin(radian) * radius,
+    lx = Math.cos(radian) * radius;
+
+  return {
+    x: cx + lx,
+    y: cy + ly
+  };
+}
+
+function getPointAtLengthByEllipse(elem, length) {
+  let totalLength = getTotalLength(elem),
+    rx = getBaseVal(elem, 'rx'),
+    ry = getBaseVal(elem, 'ry'),
+    cx = getBaseVal(elem, 'cx'),
+    cy = getBaseVal(elem, 'cy'),
+    radian = 2 * Math.PI * (length / totalLength);
+
+  return {
+    x: rx * Math.cos(radian) + cx,
+    y: ry * Math.sin(radian) + cy
+  };
+}
+
+function getPointAtLengthByRect(elem, length) {
+  let x = getBaseVal(elem, 'x'),
+    y = getBaseVal(elem, 'y'),
+    width = getBaseVal(elem, 'width'),
+    height = getBaseVal(elem, 'height'),
+    arr = [width, height, width, height],
+    section, i = 0, prev = 0, sum = 0;
+
+  for (; i < 4; i++) {
+    sum += arr[i];
+
+    if (sum >= length) {
+      section = length - prev;
+      switch (i) {
+        case 0:
+          x += section;
+          break;
+        case 1:
+          x += width;
+          y += section;
+          break;
+        case 2:
+          x += width - section;
+          y += height;
+          break;
+        case 3:
+          y += height - section;
+        break;
+      }
+
+      return {
+        x,
+        y
+      };
     }
-    return totalLength;
+    prev = sum;
+  }
 }
 
-function getPolygonTotalLength( elem ) {
-    let points = elem.points;
-    return getPolylineTotalLength( elem ) +
-        getDistance( points.getItem(0), points.getItem( points.numberOfItems - 1 ) );
+function getPointAtLengthByLine(elem, length) {
+  return getPointAtLine({
+    x: getBaseVal(elem, 'x1'),
+    y: getBaseVal(elem, 'y1')
+  }, {
+    x: getBaseVal(elem, 'x2'),
+    y: getBaseVal(elem, 'y2')
+  }, length);
 }
 
-function getTotalLength( elem ) {
-    if ( elem.getTotalLength ) {
-        return elem.getTotalLength();
+function getPointAtLengthByPolyline(elem, length, polygon) {
+  let points = elem.points,
+    l = points.numberOfItems + (polygon || 0),
+    prev = 0, sum = 0, p1, p2, i, j;
+
+  for (i = 1; i < l; i++) {
+    j = i - 1;
+    if (polygon && i === l - 1) {
+      i = 0;
+      j = l - 2;
     }
-    switch ( elem.nodeName.toLowerCase() ) {
-        case 'rect':
-            return getRectTotalLength( elem );
-        case 'circle':
-            return getCircleTotalLength( elem );
-        case 'ellipse':
-            return getEllipseTotalLength( elem );
-        case 'line':
-            return getLineTotalLength( elem );
-        case 'polyline':
-            return getPolylineTotalLength( elem );
-        case 'polygon':
-            return getPolygonTotalLength( elem );
+    p1 = points.getItem(j);
+    p2 = points.getItem(i);
+    sum += getDistance(p1, p2);
+    if (sum >= length) {
+      return getPointAtLine(p1, p2, length - prev);
     }
+    prev = sum;
+  }
 }
 
-function getPointAtLengthByCircle( elem, length ) {
-    let radius = getBaseVal( elem, 'r' ),
-        cx = getBaseVal( elem, 'cx' ),
-        cy = getBaseVal( elem, 'cy' ),
-        radian = length / getTotalLength( elem ) * 2 * Math.PI,
-        ly = Math.sin( radian ) * radius,
-        lx = Math.cos( radian ) * radius;
-
-    return {
-        x: cx + lx,
-        y: cy + ly
-    };
+function getPointAtLengthByPolygon(elem, length) {
+  return getPointAtLengthByPolyline(elem, length, 1);
 }
 
-function getPointAtLengthByEllipse( elem, length ) {
-    let totalLength = getTotalLength( elem ),
-        rx = getBaseVal( elem, 'rx' ),
-        ry = getBaseVal( elem, 'ry' ),
-        cx = getBaseVal( elem, 'cx' ),
-        cy = getBaseVal( elem, 'cy' ),
-        radian = 2 * Math.PI * ( length / totalLength );
-
-    return {
-        x: rx * Math.cos( radian ) + cx,
-        y: ry * Math.sin( radian ) + cy
-    };
+function getPointAtLength(elem, length) {
+  if (elem.getPointAtLength) {
+    return elem.getPointAtLength(length);
+  }
+  switch (elem.nodeName.toLowerCase()) {
+    case 'rect':
+      return getPointAtLengthByRect(elem, length);
+    case 'circle':
+      return getPointAtLengthByCircle(elem, length);
+    case 'ellipse':
+      return getPointAtLengthByEllipse(elem, length);
+    case 'line':
+      return getPointAtLengthByLine(elem, length);
+    case 'polyline':
+      return getPointAtLengthByPolyline(elem, length);
+    case 'polygon':
+      return getPointAtLengthByPolygon(elem, length);
+  }
 }
 
-function getPointAtLengthByRect( elem, length ) {
-    let x = getBaseVal( elem, 'x' ),
-        y = getBaseVal( elem, 'y' ),
-        width = getBaseVal( elem, 'width' ),
-        height = getBaseVal( elem, 'height' ),
-        arr = [ width, height, width, height ],
-        section, i = 0, prev = 0, sum = 0;
-
-    for ( ; i < 4; i++ ) {
-        sum += arr[i];
-
-        if ( sum >= length ) {
-            section = length - prev;
-            switch ( i ) {
-                case 0:
-                    x += section;
-                    break;
-                case 1:
-                    x += width;
-                    y += section;
-                    break;
-                case 2:
-                    x += width - section;
-                    y += height;
-                    break;
-                case 3:
-                    y += height - section;
-
-            }
-
-            return {
-                x,
-                y
-            };
-        }
-        prev = sum;
-    }
-}
-
-function getPointAtLengthByLine( elem, length ) {
-    return getPointAtLine( {
-        x: getBaseVal( elem, 'x1' ),
-        y: getBaseVal( elem, 'y1' )
-    }, {
-        x: getBaseVal( elem, 'x2' ),
-        y: getBaseVal( elem, 'y2' )
-    }, length );
-}
-
-function getPointAtLengthByPolyline( elem, length, polygon ) {
-    let points = elem.points,
-        l = points.numberOfItems + ( polygon || 0 ),
-        prev = 0, sum = 0, p1, p2, i, j;
-
-    for ( i = 1; i < l; i++ ) {
-        j = i - 1;
-        if ( polygon && i === l - 1 ) {
-            i = 0;
-            j = l - 2;
-        }
-        p1 = points.getItem(j);
-        p2 = points.getItem(i);
-        sum += getDistance( p1, p2 );
-        if ( sum >= length ) {
-            return getPointAtLine( p1, p2, length - prev );
-        }
-        prev = sum;
-    }
-}
-
-function getPointAtLengthByPolygon( elem, length ) {
-    return getPointAtLengthByPolyline( elem, length, 1 );
-}
-
-function getPointAtLength( elem, length ) {
-    if ( elem.getPointAtLength ) {
-        return elem.getPointAtLength( length );
-    }
-    switch ( elem.nodeName.toLowerCase() ) {
-        case 'rect':
-            return getPointAtLengthByRect( elem, length );
-        case 'circle':
-            return getPointAtLengthByCircle( elem, length );
-        case 'ellipse':
-            return getPointAtLengthByEllipse( elem, length );
-        case 'line':
-            return getPointAtLengthByLine( elem, length );
-        case 'polyline':
-            return getPointAtLengthByPolyline( elem, length );
-        case 'polygon':
-            return getPointAtLengthByPolygon( elem, length );
-    }
-}
-
-function getSvgWidthOrHeight( svg, size ) {
-    try {
-        return getBaseVal( svg, 'width' );
-    } catch( err ) {
-        //处理低版本chrome抛出来的异常：Error: NOT_SUPPORTED_ERR: DOM Exception 9
-        return parseFloat( getStyle( svg, size ) );
-    }
+function getSvgWidthOrHeight(svg, size) {
+  try {
+    return getBaseVal(svg, 'width');
+  } catch (err) {
+    //处理低版本chrome抛出来的异常：Error: NOT_SUPPORTED_ERR: DOM Exception 9
+    return parseFloat(getStyle(svg, size));
+  }
 }
 
 const SVG = {};
 
 export default {
-    id: 'svg',
-    priority: 60,
-    install( vivid, SPECIAL_VALUE ) {
-        vivid.geometry = function( elem, percent ) {
-            elem = typeof elem === 'string' ? document.querySelector( elem ) : elem;
-            percent = percent || 100;
+  id: 'svg',
+  priority: 60,
+  install(vivid, SPECIAL_VALUE) {
+    vivid.geometry = function (elem, percent) {
+      elem = typeof elem === 'string' ? document.querySelector(elem) : elem;
+      percent = percent || 100;
 
-            return function( property ) {
-                return {
-                    el: elem,
-                    property,
-                    totalLength: getTotalLength( elem ) * ( percent / 100 ),
-                    sign: SPECIAL_VALUE,
-                    type: SVG
-                };
-            };
+      return function (property) {
+        return {
+          el: elem,
+          property,
+          totalLength: getTotalLength(elem) * (percent / 100),
+          sign: SPECIAL_VALUE,
+          type: SVG
         };
-        vivid.setDashoffset = function( elem ) {
-            let length = getTotalLength( elem );
-            elem.setAttribute( 'stroke-dasharray', length );
-            return length;
-        };
-    },
-    init( tween ) {
-        let data = tween.pluginData,
-            to = tween.to;
+      };
+    };
+    vivid.setDashoffset = function (elem) {
+      let length = getTotalLength(elem);
+      elem.setAttribute('stroke-dasharray', length);
+      return length;
+    };
+  },
+  init(tween) {
+    let data = tween.pluginData,
+      to = tween.to;
 
-        if ( !to || to.type !== SVG ) {
-            return;
-        }
-        data.svg = {
-            geometry: to
-        };
-
-        tween.from = 0;
-        tween.to = to.totalLength;
-        tween.unit = '';
-    },
-    update( tween, value ) {
-        let svgData = tween.pluginData.svg,
-            p0, p1;
-
-        if ( !svgData ) {
-            return;
-        }
-
-        value = value[0];
-
-        p0 = getPoint(-1);
-        p1 = getPoint(0);
-
-        function getPoint( offset ) {
-            return getPointAtLength( svgData.geometry.el, value + offset );
-        }
-
-        switch ( svgData.geometry.property ) {
-            case 'x':
-                return p1.x + 'px';
-            case 'y':
-                return p1.y + 'px';
-            case 'angle':
-                return getAngleByLine( p0, p1 ) + 'deg';
-        }
+    if (!to || to.type !== SVG) {
+      return;
     }
+    data.svg = {
+      geometry: to
+    };
+
+    tween.from = 0;
+    tween.to = to.totalLength;
+    tween.unit = '';
+  },
+  update(tween, value) {
+    let svgData = tween.pluginData.svg,
+      p0, p1;
+
+    if (!svgData) {
+      return;
+    }
+
+    value = value[0];
+
+    p0 = getPoint(-1);
+    p1 = getPoint(0);
+
+    function getPoint(offset) {
+      return getPointAtLength(svgData.geometry.el, value + offset);
+    }
+
+    switch (svgData.geometry.property) {
+      case 'x':
+        return p1.x + 'px';
+      case 'y':
+        return p1.y + 'px';
+      case 'angle':
+        return getAngleByLine(p0, p1) + 'deg';
+    }
+  }
 };

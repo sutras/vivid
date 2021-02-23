@@ -9,12 +9,12 @@ import multiPlugin from './plugins/multiPlugin';
 import initGuardPlugin from './plugins/initGuardPlugin';
 
 
-vivid.use( updateGuardPlugin );
-vivid.use( cssPlugin );
-vivid.use( colorPlugin );
-vivid.use( relativePlugin );
-vivid.use( svgPlugin );
-vivid.use( multiPlugin );
-vivid.use( initGuardPlugin );
+vivid.use(updateGuardPlugin);
+vivid.use(cssPlugin);
+vivid.use(colorPlugin);
+vivid.use(relativePlugin);
+vivid.use(svgPlugin);
+vivid.use(multiPlugin);
+vivid.use(initGuardPlugin);
 
 export default vivid;

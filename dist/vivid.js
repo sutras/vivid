@@ -1,5 +1,5 @@
 /**
- * @version v0.7.0
+ * @version v0.7.1
  * @link https://github.com/sutras/vivid#readme
  * @license MIT
  */
@@ -565,6 +565,11 @@
       }
 
       spacing = isRange ? (val2 - val1) / maxValue : val1;
+
+      if (spacing === Infinity) {
+        spacing = 0;
+      }
+
       return start + spacing * (Math.round(values[index] * 100) / 100) + unit;
     };
   }
@@ -2074,6 +2079,7 @@
 
           case 3:
             y += height - section;
+            break;
         }
 
         return {

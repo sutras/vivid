@@ -12,43 +12,43 @@ import Set from './set';
 
 const { request, cancel } = getAnimationFrameController();
 let timelines = new Set(),
-    id = null,
-    paused = true;
+  id = null,
+  paused = true;
 
-function add( tick ) {
-    timelines.add( tick );
-    run();
+function add(tick) {
+  timelines.add(tick);
+  run();
 }
 
-function remove( tick ) {
-    timelines['delete']( tick );
+function remove(tick) {
+  timelines['delete'](tick);
 }
 
 function step() {
-    if ( timelines.size === 0 ) {
-        stop();
-    } else {
-        new Set( timelines ).forEach(tick => tick());
+  if (timelines.size === 0) {
+    stop();
+  } else {
+    new Set(timelines).forEach(tick => tick());
 
-        id = request( step );
-    }
+    id = request(step);
+  }
 }
 
 function run() {
-    if ( paused ) {
-        paused = false;
-        id = request( step );
-    }
+  if (paused) {
+    paused = false;
+    id = request(step);
+  }
 }
 
 function stop() {
-    if ( !paused ) {
-        paused = true;
-        cancel( id );
-    }
+  if (!paused) {
+    paused = true;
+    cancel(id);
+  }
 }
 
 export default {
-    add,
-    remove
+  add,
+  remove
 };
