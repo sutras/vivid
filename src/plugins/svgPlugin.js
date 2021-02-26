@@ -255,7 +255,7 @@ export default {
         };
       };
     };
-    vivid.setDashoffset = function (elem) {
+    vivid.setDashoffset = function (id, total, elem) {
       let length = getTotalLength(elem);
       elem.setAttribute('stroke-dasharray', length);
       return length;
@@ -268,6 +268,7 @@ export default {
     if (!to || to.type !== SVG) {
       return;
     }
+
     data.svg = {
       geometry: to
     };

@@ -18,69 +18,72 @@
 
 # API
 
-## 选项参数
+## 接口
 
 ``` js
-vivid( targets, keyframes|propperties, options|null );
+interface Vivid {
+  // targets：进行动画的目标对象或者元素选择器，
+  //    接受任意Object类型，一般接受Element的元素，还可以接受字符串选择器，由vivid库去查询元素
+  // properties: 目标对象或目标对象的样式对象的属性，
+  //    可接受属性对象，或者属性对象数组表示帧动画
+  (targets: Object | Element | string, properties: Properties | Properties[], options?: Options) => Timeline;
+}
 
-targets: {Object|Element|String} 要进行动画的目标对象或者元素选择器。
+interface Properties {
+  [propName: string]: any;
+}
 
-properties: {Object} 目标对象或目标对象的样式对象的属性;
-            值的类型：css数值类型或颜色值的属性、transform类属性和值为数值类型的任意对象的属性。
+interface Options {
+  // 创建动画对象后是否立即开始动画
+  autoplay?: boolean = true;
 
-keyframes: {Array} 动画关键帧，每一个关键帧就是一个properties。
+  // 是否把驱使动画运行的功能委托给别的引擎，配合tick方法使用。
+  delegate?: boolean = false;
 
-options: {
-  // {Boolean} 创建动画对象后是否立即开始动画
-  autoplay: true,
+  // 动画循环的次数，无限循环可设置为 Infinity
+  loop?: number = 0;
 
-  // {Boolean} 是否把驱使动画运行的功能委托给别的引擎，配合tick方法使用。
-  delegate: false,
-
-  // {Number} 动画循环的次数，无限循环可设置为 Infinity
-  loop: 0,
-
-  // {String: ['normal', 'reverse', 'alternate', 'alternate-reverse']} 动画播放方向
-  direction: 'normal',
+  // 动画播放方向，可选：'normal', 'reverse', 'alternate', 'alternate-reverse'
+  direction?: string = 'normal';
 
 
-  // {Function} 动画开始播放时钩子
-  begin: null,
+  // 动画开始播放时钩子
+  begin?: () => void;
 
-  // {Function} 动画播放完时钩子
-  complete: null,
+  // 动画播放完时钩子
+  complete?: () => void;
 
-  // {Function} 每次动画开始播放时钩子
-  loopBegin: null,
+  // 每次动画开始播放时钩子
+  loopBegin?: () => void;
 
-  // {Function} 每次动画播放完时钩子
-  loopComplete: null,
+  // 每次动画播放完时钩子
+  loopComplete?: () => void;
 
-  // {Function} 动画暂停时钩子，调用restart()、调用pause()、调用finish()、动画播放完时都会执行此钩子函数
-  pause: null,
+  // 动画暂停时钩子，调用restart()、调用pause()、调用finish()、动画播放完时都会执行此钩子函数
+  pause?: () => void;
 
-  // {Function} 动画播放时钩子，调用restart()、调用play()、动画开始播放时都会执行此钩子函数
-  play: null,
+  // 动画播放时钩子，调用restart()、调用play()、动画开始播放时都会执行此钩子函数
+  play?: () => void;
 
-  // {Function} 动画更新时钩子，每一帧动画都会触发此钩子函数
-  update: null,
+  // 动画更新时钩子，每一帧动画都会触发此钩子函数
+  update?: () => void;
 
 
   // 动画持续时间，单位ms
-  duration: 400,
+  duration?: number = 400;
 
   // 动画延迟时间，单位ms
-  delay: 0,
+  delay?: number = 0;
 
   // 动画结束延迟时间，单位ms
-  endDelay: 0,
+  endDelay?: number = 0;
 
-  // {String} 滑动公式
-  easing: 'easeInOutQuad',
+  // 滑动公式
+  easing?: string = 'easeInOutQuad';
 
   // 动画属性值的小数位数，1:取整、10:一位、100:两位、0.1:十位取整、0.01:百位取整，以此类推。
-  round: 0
-});
+  round?: number = 0;
+}
 ```
 
 ### transform类型属性
@@ -215,18 +218,17 @@ vivid('#box', [
 
 ## 辅助函数
 
-### vivid.withFrom( from: any, to: any )
+### vivid.withFrom: ( from: any, to: any ) => any
 带起始值的属性值。
 
-### vivid.keyframes( keyframes: any[] )
+### vivid.keyframes: ( keyframes: any[] ) => any
 用于属性关键帧。
 
-### vivid.random( min: number, max: number ): number
+### vivid.random: ( min: number, max: number ) => number
 返回一个随机数。
 
-### vivid.setDashoffset( elem: SVGGeometryElement ): number
+### vivid.setDashoffset: ( elem: SVGGeometryElement ) => number
 用于SVG的画线动画。设置SVGGeometryElement元素stroke-dasharray为SVGGeometryElement#getTotalLength并返回。例如：
-
 ``` js
 vivid('svg path', {
   strokeDashoffset: [vivid.setDashoffset, 0]
@@ -238,10 +240,9 @@ vivid('svg path', {
 });
 ```
 
-### vivid.geometry( target: SVGGeometryElement | string, percent?: number = 100 ): function
+### vivid.geometry: ( target: SVGGeometryElement | string, percent?: number = 100 ) => any
 用于路径动画。geometry函数返回一个函数，后者可接受一个字符串参数{x|y|angle}进行调用并返回一个对象，
 此对象包含了一个标识属性类型的属性便于程序内部进行指定的处理。例如：
-
 ``` js
 var geometry = vivid.geometry('svg path');
 vivid('#el', {
@@ -256,58 +257,63 @@ vivid('#el', {
 });
 ```
 
-### vivid.addEasing( object: Object )
-### vivid.addEasing( name: string, handle: Function )
+### vivid.addEasing()
 如果内置的缓动公式不合适，也可以导入外部的缓动公式。
-
-### vivid.stagger( val: Array | number, options: Object ): Function
-交错动画。
 ``` js
-val: Number  // 设置交错值
-val: Array[<范围起始值>, <范围结束值>]  // 设置交错范围值
+// 导入缓动公式
+const addEasing: ( name: string, handle: (k) => number ) => void;
 
-options = {
-  // {String: ['normal', 'reverse']}，反方向的交错动画
-  direction: 'normal',
-
-  // {String|Function}，带滑动公式的交错动画
-  easing: null,
-
-  // {Array[<列数>, <行数>]}，网格交错动画
-  grid: null,
-
-  // {String: ['x', 'y']}，网格交错中的方向
-  axis: null,
-
-  // {Number}，交错动画的开始值
-  start: 0,
-  
-  // {Number|String: ['first', 'center', 'last']}，交错动画开始位置
-  from: 0
-};
+// 批量导入缓动公式
+const addEasing: ( easingMap: object ) => void;
 ```
 
-### vivid.getPrefixedCssProp( property: string ): null | string
+
+### vivid.stagger()
+交错动画。
+
+``` js
+// 元祖两元素为范围起始值和结束值
+const stagger: (val: [number, number] | number, options: Options) => F;
+const F: (index: number, total: number) => number;
+
+interface Options = {
+  // 反方向的交错动画。字符串可选: 'normal', 'reverse'
+  direction?: string = 'normal';
+
+  // 带缓动公式的交错动画。
+  easing?: string | (k: number) => number;
+
+  // 网格交错动画，数组两元素分别为列数、行数
+  grid?: [number, number];
+
+  // 网格交错中的方向。字符串可选: 'x', 'y'
+  axis?: string;
+
+  // 交错动画的开始值
+  start?: number = 0;
+  
+  // 交错动画开始位置。字符串可选: 'first', 'center', 'last'
+  from?: number | string = 0;
+}
+```
+
+### vivid.getPrefixedCssProp: ( property: string ) => null | string
 接受一个元素样式对象的属性名，返回一个兼容当前浏览器的可能带有前缀的属性名；
 不兼容则返回null。
 
-### vivid.css( elem: Element, prop: string )
-获取元素样式值。vivid.css()可以获取 transform类型的属性值, 例如:
+### vivid.css()
+获取/设置元素样式值。
 
 ``` js
-vivid.css(document.body, 'scale');
+// 获取元素样式值，可以获取 transform 类型(2D)的属性值
+const css: (elem: Element, property: string) => any;
+
+// 设置元素样式值，可以设置 transform 类型(2D)的属性值
+const css: (elem: Element, property: string, value: number | string) => void;
+
+// 批量设置元素样式值
+const css: ( elem: Element, propertyValueMap: object ) => void;
 ```
-
-### vivid.css( elem: Element, prop: string, value: number | string )
-设置元素样式值。vivid.css()可以设置 transform类型的属性, 例如:
-
-``` js
-vivid.css(document.body, 'translateX', 200);
-```
-
-### vivid.css( elem: Element, object: Object )
-批量设置元素样式。
-
 
 ### vivid.Map()
 animate使用Map来提升性能，并对不支持Map的浏览器进行简单的实现。

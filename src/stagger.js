@@ -4,7 +4,7 @@
 |-------------------------------------------------------------------------------
 |
 */
-import { assignObjectProp } from './util';
+import { assignObjectProp, isFunction } from './util';
 import easing from './easing';
 
 const staggerOptions = {
@@ -19,7 +19,7 @@ export default function stagger(val, options) {
   options = assignObjectProp({}, staggerOptions, options);
 
   let direction = options.direction,
-    tween = options.easing ? easing[options.easing] : null,
+    tween = isFunction(options.easing) ? options.easing : easing[options.easing],
     grid = options.grid,
     axis = options.axis,
     fromIndex = options.from || 0,
@@ -29,12 +29,11 @@ export default function stagger(val, options) {
     isRange = Array.isArray(val),
     val1 = isRange ? parseFloat(val[0]) : parseFloat(val),
     val2 = isRange ? parseFloat(val[1]) : 0,
-    unit = 0,
     start = options.start || 0 + (isRange ? val1 : 0),
     values = [],
     maxValue = 0;
 
-  return function (elem, index, total) {
+  return function (index, total) {
     let i,
       fromX, fromY,
       toX, toY,
@@ -73,7 +72,7 @@ export default function stagger(val, options) {
     if (spacing === Infinity) {
       spacing = 0;
     }
-    return start + (spacing * (Math.round(values[index] * 100) / 100)) + unit;
+    return start + (spacing * (Math.round(values[index] * 100) / 100));
   };
 }
 

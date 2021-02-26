@@ -67,7 +67,7 @@ function isAlternate(direction) {
 }
 
 function getFuncValue(value, animatable) {
-  return isFunction(value) ? value(animatable.target, animatable.id, animatable.total) : value;
+  return isFunction(value) ? value(animatable.id, animatable.total, animatable.target) : value;
 }
 
 function getTweenValue(progress, tween) {
@@ -159,7 +159,6 @@ function normalizeTweens(animatable, tweenConfigs, property, options, beginTime,
       value, to, from, tween,
       round = tweenConfig.round || options.round,
       easing = getEasing(tweenConfig.easing || options.easing),
-      valueStrategy,
       values, i, l, parts,
       withFrom,
       retValue;

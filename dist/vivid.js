@@ -1,5 +1,5 @@
 /**
- * @version v0.7.1
+ * @version v0.7.2
  * @link https://github.com/sutras/vivid#readme
  * @license MIT
  */
@@ -514,7 +514,7 @@
   function stagger(val, options) {
     options = assignObjectProp({}, staggerOptions, options);
     var direction = options.direction,
-        tween = options.easing ? easing[options.easing] : null,
+        tween = isFunction(options.easing) ? options.easing : easing[options.easing],
         grid = options.grid,
         axis = options.axis,
         fromIndex = options.from || 0,
@@ -524,11 +524,10 @@
         isRange = Array.isArray(val),
         val1 = isRange ? parseFloat(val[0]) : parseFloat(val),
         val2 = isRange ? parseFloat(val[1]) : 0,
-        unit = 0,
         start = options.start || 0 + (isRange ? val1 : 0),
         values = [],
         maxValue = 0;
-    return function (elem, index, total) {
+    return function (index, total) {
       var i, fromX, fromY, toX, toY, distanceX, distanceY, value, spacing;
       fromIndex = fromFirst ? 0 : fromCenter ? (total - 1) / 2 : fromLast ? total - 1 : fromIndex;
 
@@ -570,7 +569,7 @@
         spacing = 0;
       }
 
-      return start + spacing * (Math.round(values[index] * 100) / 100) + unit;
+      return start + spacing * (Math.round(values[index] * 100) / 100);
     };
   }
 
@@ -685,7 +684,7 @@
   }
 
   function getFuncValue(value, animatable) {
-    return isFunction(value) ? value(animatable.target, animatable.id, animatable.total) : value;
+    return isFunction(value) ? value(animatable.id, animatable.total, animatable.target) : value;
   }
 
   function getTweenValue(progress, tween) {
@@ -2181,7 +2180,7 @@
         };
       };
 
-      vivid.setDashoffset = function (elem) {
+      vivid.setDashoffset = function (id, total, elem) {
         var length = getTotalLength(elem);
         elem.setAttribute('stroke-dasharray', length);
         return length;
