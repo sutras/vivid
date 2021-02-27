@@ -1,6 +1,6 @@
 {
   "name": "vivid",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "动画库",
   "main": "src/main.js",
   "scripts": {

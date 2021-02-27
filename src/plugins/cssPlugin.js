@@ -99,6 +99,20 @@ const cssHooks = {
     set(elem, prop, val) {
       setStyle(elem, prop, val);
     }
+  },
+  'float': {
+    get(elem, prop) {
+      if (!('float' in html.style)) {
+        prop = 'cssFloat';
+      }
+      return getStyle(elem, prop);
+    },
+    set(elem, prop, val) {
+      if (!('float' in html.style)) {
+        prop = 'cssFloat';
+      }
+      setStyle(elem, prop, val);
+    }
   }
 };
 

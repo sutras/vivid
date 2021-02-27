@@ -1,5 +1,5 @@
 /**
- * @version v0.7.2
+ * @version v0.7.3
  * @link https://github.com/sutras/vivid#readme
  * @license MIT
  */
@@ -1376,6 +1376,22 @@
         return getStyle(elem, prop);
       },
       set: function set(elem, prop, val) {
+        setStyle(elem, prop, val);
+      }
+    },
+    'float': {
+      get: function get(elem, prop) {
+        if (!('float' in html.style)) {
+          prop = 'cssFloat';
+        }
+
+        return getStyle(elem, prop);
+      },
+      set: function set(elem, prop, val) {
+        if (!('float' in html.style)) {
+          prop = 'cssFloat';
+        }
+
         setStyle(elem, prop, val);
       }
     }
