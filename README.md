@@ -43,8 +43,8 @@ interface Options {
   // 动画循环的次数，无限循环可设置为 Infinity
   loop?: number = 0;
 
-  // 动画播放方向，可选：'normal', 'reverse', 'alternate', 'alternate-reverse'
-  direction?: string = 'normal';
+  // 动画播放方向
+  direction?: 'normal' | 'reverse' | 'alternate' | 'alternate-reverse' = 'normal';
 
 
   // 动画开始播放时钩子
@@ -78,7 +78,7 @@ interface Options {
   // 动画结束延迟时间，单位ms
   endDelay?: number = 0;
 
-  // 滑动公式
+  // 缓动公式
   easing?: string = 'easeInOutQuad';
 
   // 动画属性值的小数位数，1:取整、10:一位、100:两位、0.1:十位取整、0.01:百位取整，以此类推。
@@ -277,8 +277,8 @@ const stagger: (val: [number, number] | number, options: Options) => F;
 const F: (index: number, total: number) => number;
 
 interface Options = {
-  // 反方向的交错动画。字符串可选: 'normal', 'reverse'
-  direction?: string = 'normal';
+  // 反方向的交错动画。
+  direction?: 'normal' | 'reverse' = 'normal';
 
   // 带缓动公式的交错动画。
   easing?: string | (k: number) => number;
@@ -286,14 +286,14 @@ interface Options = {
   // 网格交错动画，数组两元素分别为列数、行数
   grid?: [number, number];
 
-  // 网格交错中的方向。字符串可选: 'x', 'y'
-  axis?: string;
+  // 网格交错中的方向。
+  axis?: 'x' | 'y';
 
   // 交错动画的开始值
   start?: number = 0;
   
-  // 交错动画开始位置。字符串可选: 'first', 'center', 'last'
-  from?: number | string = 0;
+  // 交错动画开始位置。
+  from?: number | 'first' | 'center' | 'last' = 0;
 }
 ```
 
@@ -306,13 +306,13 @@ interface Options = {
 
 ``` js
 // 获取元素样式值，可以获取 transform 类型(2D)的属性值
-const css: (elem: Element, property: string) => any;
+type css = (elem: Element, property: string) => any;
 
 // 设置元素样式值，可以设置 transform 类型(2D)的属性值
-const css: (elem: Element, property: string, value: number | string) => void;
+type css = (elem: Element, property: string, value: number | string) => void;
 
 // 批量设置元素样式值
-const css: ( elem: Element, propertyValueMap: object ) => void;
+type css = ( elem: Element, propertyValueMap: object ) => void;
 ```
 
 ### vivid.Map()
@@ -565,3 +565,6 @@ engine是内部使用的引擎，也可以使用vivid.engine来对外访问，�
 - whitesmoke
 - yellowgreen
 - rebeccapurple
+
+# 示例
+[在线演示](https://sutras.github.io/vivid)
