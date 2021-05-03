@@ -567,4 +567,4 @@ engine是内部使用的引擎，也可以使用vivid.engine来对外访问，�
 - rebeccapurple
 
 # 示例
-[在线演示](https://sutras.github.io/vivid)
+[在线演示](https://sutras.github.io/vivid/)
